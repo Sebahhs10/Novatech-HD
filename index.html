@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaTech - Portal de Pedidos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div>
+                <h1>🛒 NovaTech</h1>
+                <p class="subtitle">Portal de Pedidos</p>
+            </div>
+            <div class="version-badge">
+                <span class="version">v<span id="version">1.0.0</span></span>
+                <span class="env">PRODUCCIÓN</span>
+            </div>
+        </header>
+
+        <!-- ESTADÍSTICAS RÁPIDAS -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPedidos">0</div>
+                <div class="stat-label">Total Pedidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalClientes">0</div>
+                <div class="stat-label">Clientes Atendidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalVentas">S/ 0</div>
+                <div class="stat-label">Ventas Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="estadoEntregado">0</div>
+                <div class="stat-label">✅ Entregados</div>
+            </div>
+        </section>
+
+        <!-- TABLA DE PEDIDOS -->
+        <section class="pedidos">
+            <div class="section-header">
+                <h2>📦 Lista de Pedidos</h2>
+                <button onclick="simularActualizacion()" class="btn-actualizar">
+                    🔄 Simular Actualización
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unit.</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pedidos">
+                        <!-- Los datos se cargan con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- INFORMACIÓN DEL SISTEMA -->
+        <section class="system-info">
+            <div class="info-grid">
+                <div>
+                    <span class="label">📅 Última actualización:</span>
+                    <span id="ultimaActualizacion">-</span>
+                </div>
+                <div>
+                    <span class="label">🔧 Pipeline:</span>
+                    <span id="estadoPipeline">✅ Exitoso</span>
+                </div>
+                <div>
+                    <span class="label">🐳 Contenedor:</span>
+                    <span id="estadoContenedor">✅ Activo</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>© 2026 NovaTech S.A.C. - Todos los derechos reservados</p>
+            <p class="tech-footer">🚀 Desplegado con Docker + GitHub Actions</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
