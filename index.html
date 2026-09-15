@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaTech - Portal de Pedidos</title>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <!-- Botones de exportación -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <header>
+            <div>
+                <h1>🛒 NovaTech</h1>
+                <p class="subtitle">Portal de Pedidos</p>
+            </div>
+            <div class="version-badge">
+                <span class="version">v<span id="version">2.0.0</span></span>
+                <span class="env">PRODUCCIÓN</span>
+            </div>
+        </header>
+
+        <!-- ESTADÍSTICAS -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPedidos">0</div>
+                <div class="stat-label">Total Pedidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalClientes">0</div>
+                <div class="stat-label">Clientes Atendidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalVentas">S/ 0</div>
+                <div class="stat-label">Ventas Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="estadoEntregado">0</div>
+                <div class="stat-label">✅ Entregados</div>
+            </div>
+        </section>
+
+        <!-- FORMULARIO CREAR -->
+        <section class="form-section">
+            <div class="section-header">
+                <h2>➕ Nuevo Pedido</h2>
+                <button class="btn-toggle-form" onclick="toggleFormulario()">Mostrar / Ocultar</button>
+            </div>
+            <div id="formulario-crear" class="formulario">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Cliente *</label>
+                        <input type="text" id="f-cliente" placeholder="Nombre del cliente" />
+                    </div>
+                    <div class="form-group">
+                        <label>Producto *</label>
+                        <input type="text" id="f-producto" placeholder="Nombre del producto" />
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad *</label>
+                        <input type="number" id="f-cantidad" placeholder="1" min="1" />
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Unitario (S/) *</label>
+                        <input type="number" id="f-precio" placeholder="0.00" min="0" step="0.01" />
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="f-estado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="enviado">Enviado</option>
+                            <option value="entregado">Entregado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-actions">
+                        <button class="btn-crear" onclick="crearPedido()">✅ Agregar Pedido</button>
+                        <button class="btn-limpiar" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+                    </div>
+                </div>
+                <div id="form-error" class="form-error" style="display:none"></div>
+            </div>
+        </section>
+
+        <!-- TABLA DATATABLES -->
+        <section class="pedidos">
+            <div class="section-header">
+                <h2>📦 Lista de Pedidos</h2>
+                <div class="filtro-estado-wrap">
+                    <label>Filtrar estado:</label>
+                    <select id="filtro-estado-dt" onchange="filtrarEstado()">
+                        <option value="">Todos</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-pedidos" class="display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Precio Unit.</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th class="no-sort">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-pedidos"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- INFORMACIÓN DEL SISTEMA -->
+        <section class="system-info">
+            <div class="info-grid">
+                <div>
+                    <span class="label">📅 Última actualización:</span>
+                    <span id="ultimaActualizacion">-</span>
+                </div>
+                <div>
+                    <span class="label">🔧 Pipeline:</span>
+                    <span id="estadoPipeline">✅ Exitoso</span>
+                </div>
+                <div>
+                    <span class="label">🐳 Contenedor:</span>
+                    <span id="estadoContenedor">✅ Activo</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>© 2026 NovaTech S.A.C. - Todos los derechos reservados</p>
+            <p class="tech-footer">🚀 Desplegado con Docker + GitHub Actions</p>
+        </footer>
+    </div>
+
+    <!-- MODAL EDITAR -->
+    <div id="modal-editar" class="modal-overlay" style="display:none" onclick="cerrarModalFuera(event)">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>✏️ Editar Pedido</h3>
+                <button class="btn-cerrar" onclick="cerrarModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="m-codigo" />
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Cliente *</label>
+                        <input type="text" id="m-cliente" placeholder="Nombre del cliente" />
+                    </div>
+                    <div class="form-group">
+                        <label>Producto *</label>
+                        <input type="text" id="m-producto" placeholder="Nombre del producto" />
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad *</label>
+                        <input type="number" id="m-cantidad" placeholder="1" min="1" />
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Unitario (S/) *</label>
+                        <input type="number" id="m-precio" placeholder="0.00" min="0" step="0.01" />
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="m-estado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="enviado">Enviado</option>
+                            <option value="entregado">Entregado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="modal-error" class="form-error" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-crear" onclick="guardarEdicion()">💾 Guardar Cambios</button>
+                <button class="btn-limpiar" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAR ELIMINAR -->
+    <div id="modal-eliminar" class="modal-overlay" style="display:none" onclick="cerrarModalEliminacion(event)">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h3>🗑️ Confirmar Eliminación</h3>
+                <button class="btn-cerrar" onclick="cerrarModalEliminar()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Seguro que deseas eliminar el pedido <strong id="codigo-eliminar"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-eliminar" onclick="confirmarEliminar()">🗑️ Sí, eliminar</button>
+                <button class="btn-limpiar" onclick="cerrarModalEliminar()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast" style="display:none"></div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <!-- Plugins de botones (exportar) -->
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
