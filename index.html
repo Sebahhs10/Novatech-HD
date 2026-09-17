@@ -1,99 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaTech - Portal de Pedidos</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaTech - Panel Principal</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER -->
-        <header>
-            <div>
-                <h1>🛒 NovaTech</h1>
-                <p class="subtitle">Portal de Pedidos</p>
-            </div>
-            <div class="version-badge">
-                <span class="version">v<span id="version">1.0.0</span></span>
-                <span class="env">PRODUCCIÓN</span>
-            </div>
-        </header>
-
-        <!-- ESTADÍSTICAS RÁPIDAS -->
-        <section class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalPedidos">0</div>
-                <div class="stat-label">Total Pedidos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalClientes">0</div>
-                <div class="stat-label">Clientes Atendidos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalVentas">S/ 0</div>
-                <div class="stat-label">Ventas Totales</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="estadoEntregado">0</div>
-                <div class="stat-label">✅ Entregados</div>
-            </div>
-        </section>
-
-        <!-- TABLA DE PEDIDOS -->
-        <section class="pedidos">
-            <div class="section-header">
-                <h2>📦 Lista de Pedidos</h2>
-                <button onclick="simularActualizacion()" class="btn-actualizar">
-                    🔄 Simular Actualización
-                </button>
-            </div>
-            
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unit.</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-pedidos">
-                        <!-- Los datos se cargan con JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- INFORMACIÓN DEL SISTEMA -->
-        <section class="system-info">
-            <div class="info-grid">
-                <div>
-                    <span class="label">📅 Última actualización:</span>
-                    <span id="ultimaActualizacion">-</span>
-                </div>
-                <div>
-                    <span class="label">🔧 Pipeline:</span>
-                    <span id="estadoPipeline">✅ Exitoso</span>
-                </div>
-                <div>
-                    <span class="label">🐳 Contenedor:</span>
-                    <span id="estadoContenedor">✅ Activo</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- FOOTER -->
-        <footer>
-            <p>© 2026 NovaTech S.A.C. - Todos los derechos reservados</p>
-            <p class="tech-footer">🚀 Desplegado con Docker + GitHub Actions</p>
-        </footer>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-icon">N</div><div><strong>NovaTech</strong><span>Portal de gestión</span></div></div>
+  <nav class="nav-menu">
+    <p class="nav-title">MENÚ PRINCIPAL</p>
+    <a class="nav-link active" href="index.html"><span>📊</span> Dashboard</a>
+    <a class="nav-link" href="inventario.html"><span>📦</span> Inventario</a>
+    <a class="nav-link" href="pedidos.html"><span>📋</span> Lista de Pedidos</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="mini-status"><span class="dot"></span><div><strong>Sistema operativo</strong><small>Docker + CI/CD</small></div></div></div>
+</aside>
+<main class="main-content">
+<header class="topbar"><div><p class="eyebrow">PORTAL DE GESTIÓN</p><h1>Dashboard</h1><p class="page-description">Resumen general de pedidos e inventario de NovaTech S.A.C.</p></div><div class="top-actions"><span class="version">v<span id="version">1.0.0</span></span><span class="env">PRODUCCIÓN</span></div></header>
+<section class="dashboard-cards">
+  <a class="module-card module-inventory" href="inventario.html"><div class="module-icon">📦</div><div class="module-card-content"><span class="module-kicker">MÓDULO</span><h2>Inventario</h2><p>Consulta existencias, stock mínimo y alertas de productos.</p><span class="module-link">Ir a Inventario →</span></div></a>
+  <a class="module-card module-orders" href="pedidos.html"><div class="module-icon">📋</div><div class="module-card-content"><span class="module-kicker">MÓDULO</span><h2>Lista de Pedidos</h2><p>Revisa pedidos, clientes, cantidades, totales y estados.</p><span class="module-link">Ver pedidos →</span></div></a>
+</section>
+<section class="stats">
+ <div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-number" id="totalPedidos">0</div><div class="stat-label">Total Pedidos</div></div></div>
+ <div class="stat-card"><div class="stat-icon">👥</div><div><div class="stat-number" id="totalClientes">0</div><div class="stat-label">Clientes Atendidos</div></div></div>
+ <div class="stat-card"><div class="stat-icon">💰</div><div><div class="stat-number" id="totalVentas">S/ 0</div><div class="stat-label">Ventas Totales</div></div></div>
+ <div class="stat-card"><div class="stat-icon">⚠️</div><div><div class="stat-number" id="alertasInventario">0</div><div class="stat-label">Alertas de Inventario</div></div></div>
+</section>
+<section class="quick-panel"><div class="section-heading"><div><p class="eyebrow">ACCESO RÁPIDO</p><h2>Estado general</h2></div></div><div class="quick-grid"><a href="inventario.html" class="quick-item"><span>📦</span><div><strong id="productosDisponibles">0</strong><small>productos disponibles</small></div></a><a href="inventario.html" class="quick-item warning"><span>⚠️</span><div><strong id="productosStockBajo">0</strong><small>productos con stock bajo</small></div></a><a href="inventario.html" class="quick-item danger"><span>🔴</span><div><strong id="productosAgotados">0</strong><small>productos agotados</small></div></a><a href="pedidos.html" class="quick-item success"><span>✅</span><div><strong id="estadoEntregado">0</strong><small>pedidos entregados</small></div></a></div></section>
+<section class="system-info"><div><span class="label">📅 Última actualización</span><strong id="ultimaActualizacion">-</strong></div><div><span class="label">🔧 Pipeline</span><strong class="text-success" id="estadoPipeline">✅ Exitoso</strong></div><div><span class="label">🐳 Contenedor</span><strong class="text-success" id="estadoContenedor">✅ Activo</strong></div></section>
+<footer>© 2026 NovaTech S.A.C. · Desplegado con Docker + GitHub Actions</footer>
+</main></div><script src="script.js"></script>
+</body></html>
