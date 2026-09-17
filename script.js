@@ -1,5 +1,5 @@
 // ============================================
-// DATOS DE PEDIDOS
+// DATOS DE PEDIDOS E INVENTARIO
 // ============================================
 const pedidos = [
     { codigo: 'PED-001', cliente: 'María González', producto: 'Laptop HP 15', cantidad: 2, precio: 2450.00, total: 4900.00, estado: 'entregado' },
@@ -9,8 +9,17 @@ const pedidos = [
     { codigo: 'PED-005', cliente: 'Elena Castro', producto: 'Disco SSD 1TB', cantidad: 4, precio: 320.00, total: 1280.00, estado: 'entregado' }
 ];
 
+// NUEVO: Datos simulados para el inventario
+const productos = [
+    { sku: 'LAP-HP-15', nombre: 'Laptop HP 15', categoria: 'Laptops', stock: 45, stockMinimo: 10 },
+    { sku: 'MOU-LOG-MX', nombre: 'Mouse Logitech MX', categoria: 'Periféricos', stock: 8, stockMinimo: 15 },
+    { sku: 'MON-SAM-24', nombre: 'Monitor Samsung 24"', categoria: 'Monitores', stock: 0, stockMinimo: 5 },
+    { sku: 'TEC-MEC-RGB', nombre: 'Teclado Mecánico RGB', categoria: 'Periféricos', stock: 25, stockMinimo: 10 },
+    { sku: 'SSD-1TB-CRU', nombre: 'Disco SSD 1TB', categoria: 'Almacenamiento', stock: 12, stockMinimo: 15 }
+];
+
 // ============================================
-// FUNCIONES
+// FUNCIONES DE PEDIDOS
 // ============================================
 
 function mostrarPedidos() {
@@ -57,6 +66,82 @@ function actualizarEstadisticas() {
     document.getElementById('estadoEntregado').textContent = entregados;
 }
 
+// ============================================
+// FUNCIONES DE INVENTARIO (NUEVO)
+// ============================================
+
+function mostrarInventario() {
+    const tbody = document.getElementById('tabla-inventario');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    productos.forEach(prod => {
+        const fila = document.createElement('tr');
+        
+        // Lógica para determinar el estado según el stock
+        let estadoTexto = 'Disponible';
+        let claseEstado = 'stock-disponible';
+        
+        if (prod.stock === 0) {
+            estadoTexto = 'Agotado';
+            claseEstado = 'stock-agotado';
+        } else if (prod.stock < prod.stockMinimo) {
+            estadoTexto = 'Stock Bajo';
+            claseEstado = 'stock-bajo';
+        }
+
+        fila.innerHTML = `
+            <td><strong>${prod.sku}</strong></td>
+            <td>${prod.nombre}</td>
+            <td><span class="categoria">${prod.categoria}</span></td>
+            <td><strong>${prod.stock}</strong></td>
+            <td>${prod.stockMinimo}</td>
+            <td><span class="estado ${claseEstado}">${estadoTexto.toUpperCase()}</span></td>
+        `;
+        tbody.appendChild(fila);
+    });
+
+    actualizarEstadisticasInventario();
+}
+
+function actualizarEstadisticasInventario() {
+    if (!document.getElementById('totalProductos')) return;
+    
+    const total = productos.length;
+    const disponibles = productos.filter(p => p.stock >= p.stockMinimo).length;
+    const bajoStock = productos.filter(p => p.stock > 0 && p.stock < p.stockMinimo).length;
+    const agotados = productos.filter(p => p.stock === 0).length;
+    
+    const unidadesTotales = productos.reduce((sum, p) => sum + p.stock, 0);
+    const alertas = bajoStock + agotados;
+
+    // Actualizar tarjetas de estadísticas
+    document.getElementById('totalProductos').textContent = total;
+    document.getElementById('productosDisponibles').textContent = disponibles;
+    document.getElementById('productosStockBajo').textContent = bajoStock;
+    document.getElementById('productosAgotados').textContent = agotados;
+    
+    // Actualizar resumen textual
+    if(document.getElementById('unidadesTotales')) document.getElementById('unidadesTotales').textContent = unidadesTotales;
+    if(document.getElementById('alertasInventario')) document.getElementById('alertasInventario').textContent = alertas;
+}
+
+// Función conectada al botón "Actualizar Inventario" del HTML
+function actualizarInventario() {
+    mostrarInventario();
+    
+    const ahora = new Date();
+    document.getElementById('ultimaActualizacion').textContent = 
+        ahora.toLocaleString('es-PE', { timeZone: 'America/Lima' });
+
+    console.log('✅ Inventario sincronizado con la base de datos.');
+}
+
+// ============================================
+// SISTEMA DE SESIONES Y UTILERÍA
+// ============================================
+
 function simularActualizacion() {
     const versionActual = document.getElementById('version').textContent;
     const versionNum = parseFloat(versionActual) + 0.1;
@@ -82,35 +167,23 @@ function mostrarInfoSistema() {
     document.getElementById('estadoContenedor').className = 'text-success';
 }
 
-// ============================================
-// SISTEMA DE SESIONES Y LOGIN
-// ============================================
-
-// 5. NUEVO: Gestionar la sesión activa (Mostrar usuario y cerrar sesión)
 function gestionarSesion() {
-    // Revisar si hay un usuario guardado en la "memoria" del navegador (localStorage)
     const usuarioActivo = localStorage.getItem('usuarioNovaTech');
-    
-    // Saber si estamos en la pantalla de Login
     const esPaginaLogin = window.location.pathname.toLowerCase().includes('login.html');
 
-    // REGLA 1: Si NO hay usuario y NO estamos en el login, botarlo al login (Seguridad)
     if (!usuarioActivo && !esPaginaLogin) {
         window.location.href = 'Login.html';
         return;
     }
 
-    // REGLA 2: Si SÍ hay usuario y estamos en el login, mandarlo directo al dashboard
     if (usuarioActivo && esPaginaLogin) {
         window.location.href = 'index.html';
         return;
     }
 
-    // REGLA 3: Si SÍ hay usuario y estamos en el portal, mostrar su perfil
     if (usuarioActivo && !esPaginaLogin) {
         const sidebarBottom = document.querySelector('.sidebar-bottom');
         if (sidebarBottom) {
-            // Crear la estructura HTML del perfil usando las clases de tu CSS
             const perfilHTML = `
                 <div class="admin-profile">
                     <div class="avatar">${usuarioActivo.charAt(0).toUpperCase()}</div>
@@ -124,21 +197,16 @@ function gestionarSesion() {
                 </button>
             `;
             
-            // Insertar este código justo al inicio del sidebar-bottom
             sidebarBottom.insertAdjacentHTML('afterbegin', perfilHTML);
 
-            // Darle vida al botón de Cerrar Sesión
             document.getElementById('btnCerrarSesion').addEventListener('click', function() {
-                // Borrar al usuario de la memoria
                 localStorage.removeItem('usuarioNovaTech');
-                // Redirigir al login
                 window.location.href = 'Login.html';
             });
         }
     }
 }
 
-// 6. ACTUALIZADO: Inicializar el Login con persistencia
 function inicializarLogin() {
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
@@ -160,12 +228,10 @@ function inicializarLogin() {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value;
 
-            // Validamos credenciales
             if (user === 'admin' && pass === '12345') {
                 loginError.style.color = '#27ae60';
                 loginError.textContent = 'Acceso concedido. Iniciando sesión...';
                 
-                // GUARDAR EL USUARIO EN EL NAVEGADOR
                 localStorage.setItem('usuarioNovaTech', 'Administrador'); 
                 
                 setTimeout(() => {
@@ -183,20 +249,28 @@ function inicializarLogin() {
 // INICIALIZAR EVENTOS DEL DOM
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Lo primero que debe hacer la app es verificar la sesión
     gestionarSesion();
 
     if (document.getElementById('version')) {
         document.getElementById('version').textContent = '1.0.0';
-        mostrarPedidos();
         mostrarInfoSistema();
+    }
+    
+    // Si existe la tabla de pedidos, inicializarla
+    if (document.getElementById('tabla-pedidos')) {
+        mostrarPedidos();
+    }
+
+    // NUEVO: Si existe la tabla de inventario, inicializarla
+    if (document.getElementById('tabla-inventario')) {
+        mostrarInventario();
     }
     
     if (document.getElementById('loginForm')) {
         inicializarLogin();
     }
     
-    console.log('🚀 Archivo script.js cargado y sesión verificada');
+    console.log('🚀 Archivo script.js cargado y módulos verificados');
 });
 
 if (typeof module !== 'undefined' && module.exports) {
