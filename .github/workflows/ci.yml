@@ -1,51 +1,62 @@
-name: CI/CD Pipeline NovaTech
+name: CI Pipeline - NovaTech
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - develop
+    types: [opened, synchronize, reopened]
 
 jobs:
   test:
+    name: 🧪 Pruebas Unitarias (Node.js)
     runs-on: ubuntu-latest
     steps:
-      - name: Obtener codigo
+      - name: 📥 Clonar codigo del repositorio
         uses: actions/checkout@v3
-      
-      - name: Configurar Node.js
+
+      - name: ⚙️ Configurar entorno Node.js 18
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
-      - name: Ejecutar pruebas
-        run: node tests/test.js
-  
-  build:
+
+      - name: 🚀 Ejecutar suite de pruebas
+        run: |
+          echo "Ejecutando pruebas de integridad en pedidos e inventario..."
+          node tests/test.js
+
+  docker-build:
+    name: 🐳 Construccion y Validacion Docker
     needs: test
     runs-on: ubuntu-latest
     if: success()
     steps:
-      - name: Obtener codigo
+      - name: 📥 Clonar codigo del repositorio
         uses: actions/checkout@v3
-      
-      - name: Construir imagen Docker
+
+      - name: 🔨 Construir imagen Docker
         run: |
-          docker build -t novatech:latest .
+          docker build -t novatech-app:latest .
           docker images
-      
-      - name: Ejecutar contenedor
+
+      - name: 🚀 Desplegar contenedor de prueba
         run: |
-          docker run -d -p 8080:80 --name novatech-test novatech:latest
+          docker run -d -p 8080:80 --name novatech-container novatech-app:latest
           docker ps
-          sleep 3
-      
-      - name: Verificar aplicacion
+          sleep 4
+
+      - name: 🩺 Healthcheck de la aplicacion
         run: |
-          curl -s http://localhost:8080 | grep -q "NovaTech"
-          echo "✅ Aplicacion funcionando"
-      
-      - name: Limpiar
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+          echo "Codigo de respuesta HTTP: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ Error: La aplicacion no respondio con estado HTTP 200"
+            exit 1
+          fi
+          echo "✅ Aplicacion NovaTech desplegada y respondiendo con exito."
+
+      - name: 🧹 Limpiar recursos de contenedor
+        if: always()
         run: |
-          docker stop novatech-test
-          docker rm novatech-test
+          docker stop novatech-container || true
+          docker rm novatech-container || true
