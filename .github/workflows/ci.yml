@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: CI Pipeline - NovaTech
 
 on:
@@ -27,10 +28,37 @@ jobs:
 
   docker-build:
     name: 🐳 Construccion y Validacion Docker
+=======
+name: CI/CD Pipeline NovaTech
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener codigo
+        uses: actions/checkout@v3
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Ejecutar pruebas
+        run: node tests/test.js
+  
+  build:
+>>>>>>> eebb8bfc9005c42784b875f5beb3e87886eac0ca
     needs: test
     runs-on: ubuntu-latest
     if: success()
     steps:
+<<<<<<< HEAD
       - name: 📥 Clonar codigo del repositorio
         uses: actions/checkout@v3
 
@@ -60,3 +88,28 @@ jobs:
         run: |
           docker stop novatech-container || true
           docker rm novatech-container || true
+=======
+      - name: Obtener codigo
+        uses: actions/checkout@v3
+      
+      - name: Construir imagen Docker
+        run: |
+          docker build -t novatech:latest .
+          docker images
+      
+      - name: Ejecutar contenedor
+        run: |
+          docker run -d -p 8080:80 --name novatech-test novatech:latest
+          docker ps
+          sleep 3
+      
+      - name: Verificar aplicacion
+        run: |
+          curl -s http://localhost:8080 | grep -q "NovaTech"
+          echo "✅ Aplicacion funcionando"
+      
+      - name: Limpiar
+        run: |
+          docker stop novatech-test
+          docker rm novatech-test
+>>>>>>> eebb8bfc9005c42784b875f5beb3e87886eac0ca
