@@ -43,7 +43,7 @@ function inicializarManejoPedidos() {
         const controlesHTML = `
             <div class="dt-top" style="margin-bottom: 15px; display: flex; gap: 12px;">
                 <div class="dataTables_filter">
-                    <input type="text" id="buscadorPedidos" placeholder="🔍 Buscar cliente, código o producto..." style="width: 280px; padding: 8px; border: 1px solid #ced4da; border-radius: 8px;">
+                    <input type="text" id="buscadorPedidos" placeholder="🔍 Buscar por DNI o Código..." style="width: 280px; padding: 8px; border: 1px solid #ced4da; border-radius: 8px;">
                 </div>
                 <div class="dataTables_length">
                     <select id="filtroEstadoPedidos" style="padding: 8px; border: 1px solid #ced4da; border-radius: 8px;">
