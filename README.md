@@ -8,7 +8,9 @@ Solución DevOps para Comercial NovaTech S.A.C. - Aplicación web de portal de p
 
 ## 📋 Descripción del Proyecto
 
-Este proyecto fue desarrollado como parte de la Tarea Académica 1 (TA1) del curso **Herramientas de Desarrollo Profesional - TIC**. El objetivo es implementar una solución DevOps para optimizar el proceso de desarrollo, validación y despliegue de software en un contexto empresarial.
+Este proyecto fue desarrollado como parte del **Segundo Avance** del curso **Herramientas de Desarrollo Profesional - TIC**. El objetivo es implementar una solución DevOps completa con control de versiones (Git Flow), gestión ágil con GitHub Projects/Issues, integración continua (CI) con GitHub Actions, contenedorización con Docker e Infraestructura como Código con Terraform.
+
+**Versión Actual:** `v0.2-avance-2` (Release de Entrega)
 
 **NovaTech S.A.C.** es una empresa peruana dedicada a la comercialización de equipos tecnológicos, que actualmente enfrenta problemas con procesos manuales que generan errores y retrasos.
 
