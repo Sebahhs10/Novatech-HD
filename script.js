@@ -1,33 +1,50 @@
 // ============================================
-// DATOS DE PEDIDOS E INVENTARIO (AMPLIADO)
+// DATOS DINÁMICOS (Conectados a MySQL)
 // ============================================
-const pedidos = [
-    { codigo: 'PED-001', cliente: 'María González', producto: 'Laptop HP 15', cantidad: 2, precio: 2450.00, total: 4900.00, estado: 'entregado' },
-    { codigo: 'PED-002', cliente: 'Carlos Ruiz', producto: 'Mouse Logitech MX', cantidad: 5, precio: 89.90, total: 449.50, estado: 'pendiente' },
-    { codigo: 'PED-003', cliente: 'Ana Torres', producto: 'Monitor Samsung 24"', cantidad: 1, precio: 1299.00, total: 1299.00, estado: 'enviado' },
-    { codigo: 'PED-004', cliente: 'Luis Fernández', producto: 'Teclado Mecánico RGB', cantidad: 3, precio: 159.00, total: 477.00, estado: 'cancelado' },
-    { codigo: 'PED-005', cliente: 'Elena Castro', producto: 'Disco SSD 1TB', cantidad: 4, precio: 320.00, total: 1280.00, estado: 'entregado' },
-    { codigo: 'PED-006', cliente: 'Jorge Silva', producto: 'Procesador Intel Core i7', cantidad: 1, precio: 1650.00, total: 1650.00, estado: 'enviado' },
-    { codigo: 'PED-007', cliente: 'Lucía Mendoza', producto: 'Monitor Gamer 240Hz', cantidad: 2, precio: 1800.00, total: 3600.00, estado: 'pendiente' },
-    { codigo: 'PED-008', cliente: 'Marcos Vega', producto: 'Memoria RAM DDR5 32GB', cantidad: 2, precio: 450.00, total: 900.00, estado: 'entregado' },
-    { codigo: 'PED-009', cliente: 'Camila Rojas', producto: 'Mouse Sensor Alta Precisión', cantidad: 1, precio: 250.00, total: 250.00, estado: 'entregado' },
-    { codigo: 'PED-010', cliente: 'Diego Paredes', producto: 'Licencia FL Studio', cantidad: 1, precio: 750.00, total: 750.00, estado: 'cancelado' },
-    { codigo: 'PED-011', cliente: 'Valeria Luna', producto: 'Laptop HP 15', cantidad: 1, precio: 2450.00, total: 2450.00, estado: 'pendiente' }
-];
 
-const productos = [
-    { sku: 'LAP-HP-15', nombre: 'Laptop HP 15', categoria: 'Laptops', stock: 45, stockMinimo: 10 },
-    { sku: 'MOU-LOG-MX', nombre: 'Mouse Logitech MX', categoria: 'Periféricos', stock: 8, stockMinimo: 15 },
-    { sku: 'MON-SAM-24', nombre: 'Monitor Samsung 24"', categoria: 'Monitores', stock: 0, stockMinimo: 5 },
-    { sku: 'TEC-MEC-RGB', nombre: 'Teclado Mecánico RGB', categoria: 'Periféricos', stock: 25, stockMinimo: 10 },
-    { sku: 'SSD-1TB-CRU', nombre: 'Disco SSD 1TB', categoria: 'Almacenamiento', stock: 12, stockMinimo: 15 },
-    { sku: 'CPU-INT-I7', nombre: 'Procesador Intel Core i7', categoria: 'Componentes', stock: 14, stockMinimo: 5 },
-    { sku: 'MON-240HZ', nombre: 'Monitor Gamer 240Hz', categoria: 'Monitores', stock: 3, stockMinimo: 5 },
-    { sku: 'RAM-DDR5', nombre: 'Memoria RAM DDR5 32GB', categoria: 'Componentes', stock: 30, stockMinimo: 15 },
-    { sku: 'MOU-PREC-G', nombre: 'Mouse Sensor Alta Precisión', categoria: 'Periféricos', stock: 0, stockMinimo: 10 },
-    { sku: 'SFT-FL-STU', nombre: 'Licencia FL Studio', categoria: 'Software', stock: 99, stockMinimo: 10 }
-];
+let pedidos = [];
+let productos = [];
 
+// ============================================
+// CONEXIÓN AL BACKEND (NODE.JS + MYSQL)
+// ============================================
+
+async function cargarDatosDesdeMySQL() {
+    try {
+        // 1. Obtener los productos (Inventario)
+        const resProductos = await fetch('http://localhost:3000/api/productos');
+        const dataProductos = await resProductos.json();
+        
+        // Adaptamos stock_minimo de la base de datos a stockMinimo que usa tu código
+        productos = dataProductos.map(prod => ({
+            ...prod,
+            stockMinimo: prod.stock_minimo
+        }));
+
+        // 2. Obtener los pedidos
+        const resPedidos = await fetch('http://localhost:3000/api/pedidos');
+        pedidos = await resPedidos.json();
+
+        console.log('✅ Datos cargados correctamente desde MySQL');
+
+        // 3. Renderizar toda la interfaz con los datos reales
+        actualizarEstadisticas();
+        actualizarEstadisticasInventario();
+
+        if (document.getElementById('tabla-pedidos')) {
+            inicializarManejoPedidos();
+        }
+
+        if (document.getElementById('tabla-inventario')) {
+            mostrarInventario();
+            inicializarFiltrosInventario(); // <-- Nueva línea agregada
+        }
+
+    } catch (error) {
+        console.error("❌ Error conectando al servidor backend:", error);
+        alert("Error de conexión: No se pudieron cargar los datos de la base de datos. Asegúrate de que node server.js esté ejecutándose.");
+    }
+}
 
 // ============================================
 // FUNCIONES DE PEDIDOS CON BUSCADOR
@@ -103,6 +120,7 @@ function renderizarTablaPedidos(datos) {
             'cancelado': 'estado-cancelado'
         }[pedido.estado] || '';
 
+        // Se usa parseFloat para asegurar que la vista soporte los decimales traídos de MySQL
         fila.innerHTML = `
             <td><strong>${pedido.codigo}</strong></td>
             <td>
@@ -113,8 +131,8 @@ function renderizarTablaPedidos(datos) {
             </td>
             <td>${pedido.producto}</td>
             <td>${pedido.cantidad}</td>
-            <td>S/ ${pedido.precio.toFixed(2)}</td>
-            <td><strong>S/ ${pedido.total.toFixed(2)}</strong></td>
+            <td>S/ ${parseFloat(pedido.precio).toFixed(2)}</td>
+            <td><strong>S/ ${parseFloat(pedido.total).toFixed(2)}</strong></td>
             <td><span class="estado ${estadoClass}">${pedido.estado.toUpperCase()}</span></td>
         `;
         tbody.appendChild(fila);
@@ -126,7 +144,7 @@ function actualizarEstadisticas() {
     
     const totalPedidos = pedidos.length;
     const clientesUnicos = new Set(pedidos.map(p => p.cliente));
-    const totalVentas = pedidos.reduce((sum, p) => sum + p.total, 0);
+    const totalVentas = pedidos.reduce((sum, p) => sum + parseFloat(p.total), 0);
     const entregados = pedidos.filter(p => p.estado === 'entregado').length;
 
     document.getElementById('totalPedidos').textContent = totalPedidos;
@@ -139,13 +157,18 @@ function actualizarEstadisticas() {
 // FUNCIONES DE INVENTARIO
 // ============================================
 
-function mostrarInventario() {
+function mostrarInventario(datos = productos) {
     const tbody = document.getElementById('tabla-inventario');
     if (!tbody) return;
 
     tbody.innerHTML = '';
 
-    productos.forEach(prod => {
+    if (datos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron productos coincidentes.</td></tr>`;
+        return;
+    }
+
+    datos.forEach(prod => {
         const fila = document.createElement('tr');
         
         let estadoTexto = 'Disponible';
@@ -171,9 +194,35 @@ function mostrarInventario() {
     });
 }
 
+function filtrarInventario() {
+    const textoBuscado = document.getElementById('buscadorInventario').value.toLowerCase();
+    const categoriaSeleccionada = document.getElementById('filtroCategoria').value;
+
+    const productosFiltrados = productos.filter(prod => {
+        const coincideTexto = 
+            prod.sku.toLowerCase().includes(textoBuscado) || 
+            prod.nombre.toLowerCase().includes(textoBuscado);
+            
+        const coincideCategoria = (categoriaSeleccionada === 'todas') || (prod.categoria === categoriaSeleccionada);
+
+        return coincideTexto && coincideCategoria;
+    });
+
+    mostrarInventario(productosFiltrados);
+}
+
+function inicializarFiltrosInventario() {
+    const buscador = document.getElementById('buscadorInventario');
+    const filtroCat = document.getElementById('filtroCategoria');
+
+    if (buscador && filtroCat) {
+        buscador.addEventListener('input', filtrarInventario);
+        filtroCat.addEventListener('change', filtrarInventario);
+    }
+}
+
 function actualizarEstadisticasInventario() {
-    if (!document.getElementById('totalProductos')) return;
-    
+    // Calculamos la matemática
     const total = productos.length;
     const disponibles = productos.filter(p => p.stock >= p.stockMinimo).length;
     const bajoStock = productos.filter(p => p.stock > 0 && p.stock < p.stockMinimo).length;
@@ -182,11 +231,11 @@ function actualizarEstadisticasInventario() {
     const unidadesTotales = productos.reduce((sum, p) => sum + p.stock, 0);
     const alertas = bajoStock + agotados;
 
-    document.getElementById('totalProductos').textContent = total;
-    document.getElementById('productosDisponibles').textContent = disponibles;
-    document.getElementById('productosStockBajo').textContent = bajoStock;
-    document.getElementById('productosAgotados').textContent = agotados;
-    
+    // Pintamos solo los cuadritos que existan en la página actual (index o inventario)
+    if(document.getElementById('totalProductos')) document.getElementById('totalProductos').textContent = total;
+    if(document.getElementById('productosDisponibles')) document.getElementById('productosDisponibles').textContent = disponibles;
+    if(document.getElementById('productosStockBajo')) document.getElementById('productosStockBajo').textContent = bajoStock;
+    if(document.getElementById('productosAgotados')) document.getElementById('productosAgotados').textContent = agotados;
     if(document.getElementById('unidadesTotales')) document.getElementById('unidadesTotales').textContent = unidadesTotales;
     if(document.getElementById('alertasInventario')) document.getElementById('alertasInventario').textContent = alertas;
 }
@@ -199,7 +248,10 @@ function actualizarInventario() {
     if(document.getElementById('ultimaActualizacion')) {
         document.getElementById('ultimaActualizacion').textContent = ahora.toLocaleString('es-PE', { timeZone: 'America/Lima' });
     }
-    alert('✅ Inventario sincronizado con la base de datos.');
+    // Llama directamente a la API para refrescar los datos sin recargar la página
+    cargarDatosDesdeMySQL().then(() => {
+        alert('✅ Inventario sincronizado exitosamente con la base de datos MySQL.');
+    });
 }
 
 // ============================================
@@ -207,7 +259,9 @@ function actualizarInventario() {
 // ============================================
 
 function simularActualizacion() {
-    alert('✅ La lista de pedidos está actualizada.');
+    cargarDatosDesdeMySQL().then(() => {
+        alert('✅ La lista de pedidos fue actualizada desde la base de datos.');
+    });
 }
 
 function mostrarInfoSistema() {
@@ -222,7 +276,7 @@ function mostrarInfoSistema() {
         document.getElementById('estadoPipeline').className = 'text-success';
     }
     if(document.getElementById('estadoContenedor')) {
-        document.getElementById('estadoContenedor').textContent = '✅ Activo';
+        document.getElementById('estadoContenedor').textContent = '✅ Activo (DB Conectada)';
         document.getElementById('estadoContenedor').className = 'text-success';
     }
 }
@@ -311,30 +365,19 @@ function inicializarLogin() {
 document.addEventListener('DOMContentLoaded', function() {
     gestionarSesion();
 
-    // Actualizamos estadísticas globales (Para que el Dashboard no muestre "0")
-    actualizarEstadisticas();
-    actualizarEstadisticasInventario();
-
     if (document.getElementById('version')) {
         document.getElementById('version').textContent = '1.0.0';
         mostrarInfoSistema();
     }
     
-    // Solo inyectar buscador si estamos en la vista de Pedidos
-    if (document.getElementById('tabla-pedidos')) {
-        inicializarManejoPedidos();
-    }
-
-    // Solo dibujar inventario si estamos en la vista de Inventario
-    if (document.getElementById('tabla-inventario')) {
-        mostrarInventario();
-    }
-    
     if (document.getElementById('loginForm')) {
         inicializarLogin();
+    } else {
+        // Solo llamamos a la API si NO estamos en la pantalla de login
+        cargarDatosDesdeMySQL();
     }
     
-    console.log('🚀 Archivo script.js cargado y limpio de errores');
+    console.log('🚀 Archivo script.js cargado, leyendo datos desde MySQL');
 });
 
 // Evitar errores de referencia en el navegador
