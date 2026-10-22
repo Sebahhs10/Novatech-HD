@@ -59,3 +59,18 @@ app.get('/api/pedidos', (req, res) => {
         }
     });
 });
+
+// Agregar un nuevo producto (POST)
+app.post('/api/productos', (req, res) => {
+    const { sku, nombre, categoria, stock, stockMinimo } = req.body;
+    const query = 'INSERT INTO productos (sku, nombre, categoria, stock, stock_minimo) VALUES (?, ?, ?, ?, ?)';
+    
+    db.query(query, [sku, nombre, categoria, stock, stockMinimo], (err, results) => {
+        if (err) {
+            console.error('Error al insertar producto:', err);
+            res.status(500).json({ error: 'Error guardando en la base de datos' });
+        } else {
+            res.status(201).json({ message: 'Producto registrado exitosamente', id: results.insertId });
+        }
+    });
+});

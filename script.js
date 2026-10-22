@@ -43,7 +43,9 @@ async function cargarDatosDesdeMySQL() {
 
         console.log('✅ Datos cargados correctamente desde MySQL');
 
+        // Estas dos funciones deben ejecutarse siempre, en cualquier página
         actualizarEstadisticas();
+        actualizarEstadisticasInventario();
 
         if (document.getElementById('tabla-pedidos')) {
             inicializarManejoPedidos();
@@ -52,7 +54,6 @@ async function cargarDatosDesdeMySQL() {
         if (document.getElementById('tabla-inventario')) {
             actualizarVistaInventario();
             
-            // Inicializar eventos de los nuevos formularios del frontend
             document.getElementById('formProducto')?.addEventListener('submit', guardarProducto);
             document.getElementById('cancelarEdicionBtn')?.addEventListener('click', limpiarFormularioProducto);
             document.getElementById('formMovimiento')?.addEventListener('submit', evento => { 
@@ -237,7 +238,7 @@ function registrarMovimiento(sku, tipo, cantidad, motivo) {
     renderizarHistorial();
 }
 
-function guardarProducto(evento) {
+async function guardarProducto(evento) {
     evento.preventDefault();
     const sku = document.getElementById('productoSku').value.trim().toUpperCase();
     const nombre = document.getElementById('productoNombre').value.trim();
@@ -247,15 +248,28 @@ function guardarProducto(evento) {
     const skuOriginal = document.getElementById('skuOriginal').value;
     
     if (skuOriginal) {
-        const indice = productos.findIndex(p => p.sku === skuOriginal);
-        if (indice > -1) productos[indice] = { sku, nombre, categoria, stock, stockMinimo };
-    } else {
-        productos.push({ sku, nombre, categoria, stock, stockMinimo });
+        alert('La edición (PUT) la configuraremos en el siguiente paso.');
+        return;
     }
-    
-    limpiarFormularioProducto();
-    actualizarVistaInventario();
-    alert('Producto actualizado visualmente (Requiere API Node.js para guardar en BD)');
+
+    try {
+        // Enviamos los datos al backend
+        const response = await fetch('http://localhost:3000/api/productos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sku, nombre, categoria, stock, stockMinimo })
+        });
+
+        if (response.ok) {
+            limpiarFormularioProducto();
+            actualizarInventario(); // Recarga la tabla directo desde MySQL
+            alert('✅ Producto guardado permanentemente en MySQL');
+        } else {
+            alert('❌ Error: El SKU ya existe o hubo un problema en el servidor.');
+        }
+    } catch (error) {
+        console.error('Error de conexión:', error);
+    }
 }
 
 function editarProducto(sku) {
