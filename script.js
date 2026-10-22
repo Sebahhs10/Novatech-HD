@@ -303,17 +303,43 @@ function eliminarProducto(sku) {
     actualizarVistaInventario();
 }
 
-function moverStock(tipo) {
+async function moverStock(tipo) {
     const sku = document.getElementById('movimientoSku').value;
     const cantidad = Number(document.getElementById('movimientoCantidad').value);
     const motivo = document.getElementById('movimientoMotivo').value.trim();
     const prod = productos.find(p => p.sku === sku);
-    if (!prod || cantidad <= 0) return;
     
-    prod.stock += tipo === 'entrada' ? cantidad : -cantidad;
-    registrarMovimiento(sku, tipo, cantidad, motivo);
-    document.getElementById('formMovimiento').reset();
-    actualizarVistaInventario();
+    if (!prod || cantidad <= 0) return;
+    if (tipo === 'salida' && cantidad > prod.stock) {
+        alert(`Stock insuficiente. Disponible: ${prod.stock} unidades.`);
+        return;
+    }
+    
+    // Calcular el nuevo stock matemático
+    const nuevoStock = prod.stock + (tipo === 'entrada' ? cantidad : -cantidad);
+    
+    try {
+        const response = await fetch(`http://localhost:3000/api/productos/${sku}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sku: prod.sku,
+                nombre: prod.nombre,
+                categoria: prod.categoria,
+                stock: nuevoStock,
+                stockMinimo: prod.stockMinimo
+            })
+        });
+
+        if (response.ok) {
+            registrarMovimiento(sku, tipo, cantidad, motivo); 
+            document.getElementById('formMovimiento').reset();
+            actualizarInventario(); // Forzamos recarga fresca desde MySQL
+            alert(`✅ ${tipo.toUpperCase()} registrada. Stock actualizado permanentemente.`);
+        }
+    } catch (error) {
+        console.error('Error actualizando stock:', error);
+    }
 }
 
 function actualizarSelectorProductos() {
@@ -444,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gestionarSesion();
 
     if (document.getElementById('version')) {
-        document.getElementById('version').textContent = '1.0.0';
+        document.getElementById('version').textContent = '2.1.0';
         mostrarInfoSistema();
     }
     

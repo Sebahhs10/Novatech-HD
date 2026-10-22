@@ -74,3 +74,30 @@ app.post('/api/productos', (req, res) => {
         }
     });
 });
+
+// Actualizar un producto (PUT)
+app.put('/api/productos/:sku', (req, res) => {
+    const { sku, nombre, categoria, stock, stockMinimo } = req.body;
+    const query = 'UPDATE productos SET sku = ?, nombre = ?, categoria = ?, stock = ?, stock_minimo = ? WHERE sku = ?';
+    
+    db.query(query, [sku, nombre, categoria, stock, stockMinimo, req.params.sku], (err) => {
+        if (err) {
+            console.error('Error al actualizar:', err);
+            return res.status(500).json({ error: 'Error actualizando en la base de datos' });
+        }
+        res.json({ message: 'Producto actualizado exitosamente' });
+    });
+});
+
+// Eliminar un producto (DELETE)
+app.delete('/api/productos/:sku', (req, res) => {
+    const query = 'DELETE FROM productos WHERE sku = ?';
+    
+    db.query(query, [req.params.sku], (err) => {
+        if (err) {
+            console.error('Error al eliminar:', err);
+            return res.status(500).json({ error: 'Error eliminando de la base de datos' });
+        }
+        res.json({ message: 'Producto eliminado exitosamente' });
+    });
+});
