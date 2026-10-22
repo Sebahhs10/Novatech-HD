@@ -1,55 +1,79 @@
 // ============================================
 // DATOS DINÁMICOS (Conectados a MySQL)
 // ============================================
-
 let pedidos = [];
 let productos = [];
+
+// Historial de movimientos (Temporalmente en LocalStorage hasta crear tabla en MySQL)
+const CLAVE_MOVIMIENTOS = 'novatech_movimientos_v1';
+let movimientosInventario = cargarLista(CLAVE_MOVIMIENTOS, []);
+
+function cargarLista(clave, valorInicial) {
+    try {
+        const guardado = localStorage.getItem(clave);
+        return guardado ? JSON.parse(guardado) : valorInicial;
+    } catch (error) {
+        return valorInicial;
+    }
+}
+
+function guardarMovimientos() {
+    localStorage.setItem(CLAVE_MOVIMIENTOS, JSON.stringify(movimientosInventario));
+}
+
+function escaparHTML(valor) {
+    return String(valor).replace(/[&<>"']/g, caracter => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[caracter]));
+}
 
 // ============================================
 // CONEXIÓN AL BACKEND (NODE.JS + MYSQL)
 // ============================================
-
 async function cargarDatosDesdeMySQL() {
     try {
-        // 1. Obtener los productos (Inventario)
         const resProductos = await fetch('http://localhost:3000/api/productos');
         const dataProductos = await resProductos.json();
         
-        // Adaptamos stock_minimo de la base de datos a stockMinimo que usa tu código
         productos = dataProductos.map(prod => ({
             ...prod,
             stockMinimo: prod.stock_minimo
         }));
 
-        // 2. Obtener los pedidos
         const resPedidos = await fetch('http://localhost:3000/api/pedidos');
         pedidos = await resPedidos.json();
 
         console.log('✅ Datos cargados correctamente desde MySQL');
 
-        // 3. Renderizar toda la interfaz con los datos reales
         actualizarEstadisticas();
-        actualizarEstadisticasInventario();
 
         if (document.getElementById('tabla-pedidos')) {
             inicializarManejoPedidos();
         }
 
         if (document.getElementById('tabla-inventario')) {
-            mostrarInventario();
-            inicializarFiltrosInventario(); // <-- Nueva línea agregada
+            actualizarVistaInventario();
+            
+            // Inicializar eventos de los nuevos formularios del frontend
+            document.getElementById('formProducto')?.addEventListener('submit', guardarProducto);
+            document.getElementById('cancelarEdicionBtn')?.addEventListener('click', limpiarFormularioProducto);
+            document.getElementById('formMovimiento')?.addEventListener('submit', evento => { 
+                evento.preventDefault(); 
+                moverStock(document.getElementById('tipoMovimiento').value); 
+            });
+            ['buscadorInventario', 'filtroCategoria', 'filtroEstadoInventario'].forEach(id => 
+                document.getElementById(id)?.addEventListener(id === 'buscadorInventario' ? 'input' : 'change', mostrarInventario)
+            );
+            document.getElementById('tipoMovimiento')?.addEventListener('change', evento => { 
+                document.getElementById('movimientoSubmit').textContent = evento.target.value === 'entrada' ? 'Registrar entrada' : 'Registrar salida'; 
+            });
         }
-
     } catch (error) {
         console.error("❌ Error conectando al servidor backend:", error);
-        alert("Error de conexión: No se pudieron cargar los datos de la base de datos. Asegúrate de que node server.js esté ejecutándose.");
     }
 }
 
 // ============================================
-// FUNCIONES DE PEDIDOS CON BUSCADOR
+// FUNCIONES DE PEDIDOS
 // ============================================
-
 function inicializarManejoPedidos() {
     const contenedorTabla = document.querySelector('.table-container');
     const tbody = document.getElementById('tabla-pedidos');
@@ -60,8 +84,8 @@ function inicializarManejoPedidos() {
         const controlesHTML = `
             <div class="dt-top" style="margin-bottom: 15px; display: flex; gap: 12px;">
                 <div class="dataTables_filter">
-    <input type="text" id="buscadorPedidos" placeholder="🔍 Buscar por DNI, Código, Nombre o SKU..." style="width: 320px; padding: 8px; border: 1px solid #007bff; border-radius: 8px;">
-</div>
+                    <input type="text" id="buscadorPedidos" placeholder="🔍 Buscar por DNI, Código, Nombre o SKU..." style="width: 320px; padding: 8px; border: 1px solid #007bff; border-radius: 8px;">
+                </div>
                 <div class="dataTables_length">
                     <select id="filtroEstadoPedidos" style="padding: 8px; border: 1px solid #ced4da; border-radius: 8px;">
                         <option value="todos">Todos los estados</option>
@@ -77,7 +101,6 @@ function inicializarManejoPedidos() {
     }
 
     renderizarTablaPedidos(pedidos);
-
     document.getElementById('buscadorPedidos').addEventListener('input', filtrarPedidos);
     document.getElementById('filtroEstadoPedidos').addEventListener('change', filtrarPedidos);
 }
@@ -87,40 +110,28 @@ function filtrarPedidos() {
     const estadoSeleccionado = document.getElementById('filtroEstadoPedidos').value;
 
     const pedidosFiltrados = pedidos.filter(pedido => {
-        const coincideTexto = 
-            pedido.cliente.toLowerCase().includes(textoBuscado) || 
-            pedido.codigo.toLowerCase().includes(textoBuscado) || 
-            pedido.producto.toLowerCase().includes(textoBuscado);
-            
+        const coincideTexto = pedido.cliente.toLowerCase().includes(textoBuscado) || 
+                              pedido.codigo.toLowerCase().includes(textoBuscado) || 
+                              pedido.producto.toLowerCase().includes(textoBuscado);
         const coincideEstado = (estadoSeleccionado === 'todos') || (pedido.estado === estadoSeleccionado);
-
         return coincideTexto && coincideEstado;
     });
-
     renderizarTablaPedidos(pedidosFiltrados);
 }
 
 function renderizarTablaPedidos(datos) {
     const tbody = document.getElementById('tabla-pedidos');
     if (!tbody) return;
-    
     tbody.innerHTML = '';
 
     if (datos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron pedidos coincidentes.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron pedidos.</td></tr>`;
         return;
     }
 
     datos.forEach(pedido => {
         const fila = document.createElement('tr');
-        const estadoClass = {
-            'entregado': 'estado-entregado',
-            'pendiente': 'estado-pendiente',
-            'enviado': 'estado-enviado',
-            'cancelado': 'estado-cancelado'
-        }[pedido.estado] || '';
-
-        // Se usa parseFloat para asegurar que la vista soporte los decimales traídos de MySQL
+        const estadoClass = { 'entregado': 'estado-entregado', 'pendiente': 'estado-pendiente', 'enviado': 'estado-enviado', 'cancelado': 'estado-cancelado' }[pedido.estado] || '';
         fila.innerHTML = `
             <td><strong>${pedido.codigo}</strong></td>
             <td>
@@ -141,7 +152,6 @@ function renderizarTablaPedidos(datos) {
 
 function actualizarEstadisticas() {
     if (!document.getElementById('totalPedidos')) return;
-    
     const totalPedidos = pedidos.length;
     const clientesUnicos = new Set(pedidos.map(p => p.cliente));
     const totalVentas = pedidos.reduce((sum, p) => sum + parseFloat(p.total), 0);
@@ -154,101 +164,191 @@ function actualizarEstadisticas() {
 }
 
 // ============================================
-// FUNCIONES DE INVENTARIO
+// FUNCIONES DE INVENTARIO Y CRUD
 // ============================================
+function estadoProducto(prod) {
+    if (prod.stock === 0) return { texto: 'Agotado', clase: 'stock-agotado' };
+    if (prod.stock < prod.stockMinimo) return { texto: 'Stock bajo', clase: 'stock-bajo' };
+    return { texto: 'Disponible', clase: 'stock-disponible' };
+}
 
-function mostrarInventario(datos = productos) {
+function mostrarInventario() {
     const tbody = document.getElementById('tabla-inventario');
     if (!tbody) return;
-
+    
+    const busqueda = (document.getElementById('buscadorInventario')?.value || '').trim().toLowerCase();
+    const categoria = document.getElementById('filtroCategoria')?.value || 'todas';
+    const estado = document.getElementById('filtroEstadoInventario')?.value || 'todos';
+    
+    const filtrados = productos.filter(prod => {
+        const coincideTexto = `${prod.sku} ${prod.nombre} ${prod.categoria}`.toLowerCase().includes(busqueda);
+        const coincideCategoria = categoria === 'todas' || prod.categoria === categoria;
+        const actual = prod.stock === 0 ? 'agotado' : prod.stock < prod.stockMinimo ? 'bajo' : 'disponible';
+        return coincideTexto && coincideCategoria && (estado === 'todos' || actual === estado);
+    });
+    
     tbody.innerHTML = '';
-
-    if (datos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron productos coincidentes.</td></tr>`;
+    if (!filtrados.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:22px;color:#7f8c8d">No hay productos que coincidan.</td></tr>';
         return;
     }
-
-    datos.forEach(prod => {
+    
+    filtrados.forEach(prod => {
+        const estadoActual = estadoProducto(prod);
         const fila = document.createElement('tr');
-        
-        let estadoTexto = 'Disponible';
-        let claseEstado = 'stock-disponible';
-        
-        if (prod.stock === 0) {
-            estadoTexto = 'Agotado';
-            claseEstado = 'stock-agotado';
-        } else if (prod.stock < prod.stockMinimo) {
-            estadoTexto = 'Stock Bajo';
-            claseEstado = 'stock-bajo';
-        }
-
         fila.innerHTML = `
-            <td><strong>${prod.sku}</strong></td>
-            <td>${prod.nombre}</td>
-            <td><span class="categoria" style="background:#eef0ff; color:#5967c7; padding:4px 8px; border-radius:12px; font-size:10px;">${prod.categoria}</span></td>
+            <td><strong>${escaparHTML(prod.sku)}</strong></td>
+            <td>${escaparHTML(prod.nombre)}</td>
+            <td><span class="categoria">${escaparHTML(prod.categoria)}</span></td>
             <td><strong>${prod.stock}</strong></td>
             <td>${prod.stockMinimo}</td>
-            <td><span class="estado ${claseEstado}">${estadoTexto.toUpperCase()}</span></td>
+            <td><span class="estado ${estadoActual.clase}">${estadoActual.texto.toUpperCase()}</span></td>
+            <td class="inventory-actions">
+                <button class="btn-table" onclick="editarProducto('${escaparHTML(prod.sku)}')">Editar</button> 
+                <button class="btn-table btn-danger" onclick="eliminarProducto('${escaparHTML(prod.sku)}')">Eliminar</button>
+            </td>
         `;
         tbody.appendChild(fila);
     });
 }
 
-function filtrarInventario() {
-    const textoBuscado = document.getElementById('buscadorInventario').value.toLowerCase();
-    const categoriaSeleccionada = document.getElementById('filtroCategoria').value;
-
-    const productosFiltrados = productos.filter(prod => {
-        const coincideTexto = 
-            prod.sku.toLowerCase().includes(textoBuscado) || 
-            prod.nombre.toLowerCase().includes(textoBuscado);
-            
-        const coincideCategoria = (categoriaSeleccionada === 'todas') || (prod.categoria === categoriaSeleccionada);
-
-        return coincideTexto && coincideCategoria;
-    });
-
-    mostrarInventario(productosFiltrados);
-}
-
-function inicializarFiltrosInventario() {
-    const buscador = document.getElementById('buscadorInventario');
-    const filtroCat = document.getElementById('filtroCategoria');
-
-    if (buscador && filtroCat) {
-        buscador.addEventListener('input', filtrarInventario);
-        filtroCat.addEventListener('change', filtrarInventario);
-    }
-}
-
 function actualizarEstadisticasInventario() {
-    // Calculamos la matemática
     const total = productos.length;
     const disponibles = productos.filter(p => p.stock >= p.stockMinimo).length;
     const bajoStock = productos.filter(p => p.stock > 0 && p.stock < p.stockMinimo).length;
     const agotados = productos.filter(p => p.stock === 0).length;
-    
     const unidadesTotales = productos.reduce((sum, p) => sum + p.stock, 0);
     const alertas = bajoStock + agotados;
 
-    // Pintamos solo los cuadritos que existan en la página actual (index o inventario)
-    if(document.getElementById('totalProductos')) document.getElementById('totalProductos').textContent = total;
-    if(document.getElementById('productosDisponibles')) document.getElementById('productosDisponibles').textContent = disponibles;
-    if(document.getElementById('productosStockBajo')) document.getElementById('productosStockBajo').textContent = bajoStock;
-    if(document.getElementById('productosAgotados')) document.getElementById('productosAgotados').textContent = agotados;
-    if(document.getElementById('unidadesTotales')) document.getElementById('unidadesTotales').textContent = unidadesTotales;
-    if(document.getElementById('alertasInventario')) document.getElementById('alertasInventario').textContent = alertas;
+    if (document.getElementById('totalProductos')) document.getElementById('totalProductos').textContent = total;
+    if (document.getElementById('productosDisponibles')) document.getElementById('productosDisponibles').textContent = disponibles;
+    if (document.getElementById('productosStockBajo')) document.getElementById('productosStockBajo').textContent = bajoStock;
+    if (document.getElementById('productosAgotados')) document.getElementById('productosAgotados').textContent = agotados;
+    if (document.getElementById('unidadesTotales')) document.getElementById('unidadesTotales').textContent = unidadesTotales;
+    if (document.getElementById('alertasInventario')) document.getElementById('alertasInventario').textContent = alertas;
+}
+
+// Nota: Las siguientes funciones de CRUD actualizan el arreglo temporalmente. 
+// Requerirán rutas POST/PUT en Node.js para guardarse permanentemente.
+function registrarMovimiento(sku, tipo, cantidad, motivo) {
+    const prod = productos.find(p => p.sku === sku);
+    movimientosInventario.unshift({ id: `MOV-${Date.now()}`, fecha: new Date().toISOString(), sku, producto: prod ? prod.nombre : sku, tipo, cantidad, motivo: motivo || (tipo === 'entrada' ? 'Reposición de stock' : 'Salida de stock') });
+    guardarMovimientos();
+    renderizarHistorial();
+}
+
+function guardarProducto(evento) {
+    evento.preventDefault();
+    const sku = document.getElementById('productoSku').value.trim().toUpperCase();
+    const nombre = document.getElementById('productoNombre').value.trim();
+    const categoria = document.getElementById('productoCategoria').value;
+    const stock = Number(document.getElementById('productoStock').value);
+    const stockMinimo = Number(document.getElementById('productoMinimo').value);
+    const skuOriginal = document.getElementById('skuOriginal').value;
+    
+    if (skuOriginal) {
+        const indice = productos.findIndex(p => p.sku === skuOriginal);
+        if (indice > -1) productos[indice] = { sku, nombre, categoria, stock, stockMinimo };
+    } else {
+        productos.push({ sku, nombre, categoria, stock, stockMinimo });
+    }
+    
+    limpiarFormularioProducto();
+    actualizarVistaInventario();
+    alert('Producto actualizado visualmente (Requiere API Node.js para guardar en BD)');
+}
+
+function editarProducto(sku) {
+    const prod = productos.find(p => p.sku === sku);
+    if (!prod) return;
+    document.getElementById('skuOriginal').value = prod.sku;
+    document.getElementById('productoSku').value = prod.sku;
+    document.getElementById('productoNombre').value = prod.nombre;
+    document.getElementById('productoCategoria').value = prod.categoria;
+    document.getElementById('productoStock').value = prod.stock;
+    document.getElementById('productoMinimo').value = prod.stockMinimo;
+    document.getElementById('guardarProductoBtn').textContent = 'Guardar cambios';
+    document.getElementById('cancelarEdicionBtn').hidden = false;
+    document.getElementById('formProductoTitulo').textContent = 'Editar producto';
+    document.getElementById('formProducto').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function limpiarFormularioProducto() {
+    const form = document.getElementById('formProducto');
+    if (!form) return;
+    form.reset();
+    document.getElementById('skuOriginal').value = '';
+    document.getElementById('guardarProductoBtn').textContent = 'Agregar producto';
+    document.getElementById('cancelarEdicionBtn').hidden = true;
+    document.getElementById('formProductoTitulo').textContent = 'Registrar producto';
+}
+
+function eliminarProducto(sku) {
+    if (!confirm(`¿Eliminar el producto (${sku}) visualmente?`)) return;
+    productos = productos.filter(p => p.sku !== sku);
+    actualizarVistaInventario();
+}
+
+function moverStock(tipo) {
+    const sku = document.getElementById('movimientoSku').value;
+    const cantidad = Number(document.getElementById('movimientoCantidad').value);
+    const motivo = document.getElementById('movimientoMotivo').value.trim();
+    const prod = productos.find(p => p.sku === sku);
+    if (!prod || cantidad <= 0) return;
+    
+    prod.stock += tipo === 'entrada' ? cantidad : -cantidad;
+    registrarMovimiento(sku, tipo, cantidad, motivo);
+    document.getElementById('formMovimiento').reset();
+    actualizarVistaInventario();
+}
+
+function actualizarSelectorProductos() {
+    const select = document.getElementById('movimientoSku');
+    if (!select) return;
+    const seleccionado = select.value;
+    select.innerHTML = '<option value="">Seleccionar producto...</option>' + productos.map(p => `<option value="${escaparHTML(p.sku)}">${escaparHTML(p.sku)} — ${escaparHTML(p.nombre)}</option>`).join('');
+    if (productos.some(p => p.sku === seleccionado)) select.value = seleccionado;
+}
+
+function renderizarHistorial() {
+    const tbody = document.getElementById('tabla-movimientos');
+    if (!tbody) return;
+    const movimientos = movimientosInventario.slice(0, 50);
+    tbody.innerHTML = movimientos.length ? '' : '<tr><td colspan="6" style="text-align:center;padding:20px;color:#7f8c8d">Aún no hay movimientos registrados.</td></tr>';
+    movimientos.forEach(m => {
+        const fila = document.createElement('tr');
+        const fecha = new Date(m.fecha).toLocaleString('es-PE', { timeZone: 'America/Lima' });
+        fila.innerHTML = `<td>${escaparHTML(fecha)}</td><td><strong>${escaparHTML(m.sku)}</strong></td><td>${escaparHTML(m.producto)}</td><td><span class="estado ${m.tipo === 'entrada' ? 'stock-disponible' : 'estado-enviado'}">${m.tipo.toUpperCase()}</span></td><td>${m.cantidad}</td><td>${escaparHTML(m.motivo)}</td>`;
+        tbody.appendChild(fila);
+    });
+}
+
+function actualizarReportesInventario() {
+    if (!document.getElementById('reportesInventario')) return;
+    const totalUnidades = productos.reduce((suma, producto) => suma + Number(producto.stock || 0), 0);
+    const entradas = movimientosInventario.filter(m => m.tipo === 'entrada');
+    const salidas = movimientosInventario.filter(m => m.tipo === 'salida');
+    
+    document.getElementById('reporteUnidades').textContent = totalUnidades.toLocaleString('es-PE');
+    document.getElementById('reporteEntradas').textContent = entradas.length.toLocaleString('es-PE');
+    document.getElementById('reporteSalidas').textContent = salidas.length.toLocaleString('es-PE');
+}
+
+function exportarReporteInventario() {
+    alert("Función de exportación lista.");
+}
+
+function actualizarVistaInventario() {
+    mostrarInventario();
+    actualizarEstadisticasInventario();
+    actualizarSelectorProductos();
+    renderizarHistorial();
+    actualizarReportesInventario();
+    const ultima = document.getElementById('ultimaActualizacion');
+    if (ultima) ultima.textContent = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
 }
 
 function actualizarInventario() {
-    mostrarInventario();
-    actualizarEstadisticasInventario();
-    
-    const ahora = new Date();
-    if(document.getElementById('ultimaActualizacion')) {
-        document.getElementById('ultimaActualizacion').textContent = ahora.toLocaleString('es-PE', { timeZone: 'America/Lima' });
-    }
-    // Llama directamente a la API para refrescar los datos sin recargar la página
     cargarDatosDesdeMySQL().then(() => {
         alert('✅ Inventario sincronizado exitosamente con la base de datos MySQL.');
     });
@@ -257,19 +357,9 @@ function actualizarInventario() {
 // ============================================
 // SISTEMA DE SESIONES Y UTILERÍA
 // ============================================
-
-function simularActualizacion() {
-    cargarDatosDesdeMySQL().then(() => {
-        alert('✅ La lista de pedidos fue actualizada desde la base de datos.');
-    });
-}
-
 function mostrarInfoSistema() {
     const elUltimaAct = document.getElementById('ultimaActualizacion');
-    if (!elUltimaAct) return;
-    
-    const ahora = new Date();
-    elUltimaAct.textContent = ahora.toLocaleString('es-PE', { timeZone: 'America/Lima' });
+    if (elUltimaAct) elUltimaAct.textContent = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
     
     if(document.getElementById('estadoPipeline')) {
         document.getElementById('estadoPipeline').textContent = '✅ Exitoso';
@@ -289,30 +379,21 @@ function gestionarSesion() {
         window.location.href = 'Login.html';
         return;
     }
-
     if (usuarioActivo && esPaginaLogin) {
         window.location.href = 'index.html';
         return;
     }
-
     if (usuarioActivo && !esPaginaLogin) {
         const sidebarBottom = document.querySelector('.sidebar-bottom');
         if (sidebarBottom && !document.getElementById('btnCerrarSesion')) {
             const perfilHTML = `
                 <div class="admin-profile" style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:10px;">
                     <div class="avatar" style="width:30px; height:30px; background:#667eea; border-radius:50%; display:grid; place-items:center; color:white;">${usuarioActivo.charAt(0).toUpperCase()}</div>
-                    <div>
-                        <strong style="color:white; font-size:12px;">${usuarioActivo}</strong>
-                        <small style="color:#94a2b5; font-size:10px; display:block;">Conectado</small>
-                    </div>
+                    <div><strong style="color:white; font-size:12px;">${usuarioActivo}</strong><small style="color:#94a2b5; font-size:10px; display:block;">Conectado</small></div>
                 </div>
-                <button id="btnCerrarSesion" class="logout-button" style="width:100%; text-align:left; background:transparent; color:#b8c4d4; border:1px solid rgba(255,255,255,0.1); padding:8px; border-radius:8px; cursor:pointer;">
-                    <span>🚪</span> Cerrar sesión
-                </button>
+                <button id="btnCerrarSesion" class="logout-button" style="width:100%; text-align:left; background:transparent; color:#b8c4d4; border:1px solid rgba(255,255,255,0.1); padding:8px; border-radius:8px; cursor:pointer;"><span>🚪</span> Cerrar sesión</button>
             `;
-            
             sidebarBottom.insertAdjacentHTML('afterbegin', perfilHTML);
-
             document.getElementById('btnCerrarSesion').addEventListener('click', function() {
                 localStorage.removeItem('usuarioNovaTech');
                 window.location.href = 'Login.html';
@@ -322,41 +403,24 @@ function gestionarSesion() {
 }
 
 function inicializarLogin() {
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
     const loginForm = document.getElementById('loginForm');
-    const loginError = document.getElementById('loginError');
-
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            const isPassword = passwordInput.getAttribute('type') === 'password';
-            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-            this.textContent = isPassword ? '🙈' : '👁️';
-        });
-    }
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value;
-
-            if (user === 'admin' && pass === '12345') {
-                loginError.style.color = '#27ae60';
-                loginError.textContent = 'Acceso concedido. Iniciando sesión...';
-                
-                localStorage.setItem('usuarioNovaTech', 'Administrador'); 
-                
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 800);
-            } else {
-                loginError.style.color = '#b33d3d'; 
-                loginError.textContent = 'Usuario o contraseña incorrectos.';
-            }
-        });
-    }
+    if (!loginForm) return;
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const loginError = document.getElementById('loginError');
+        
+        if (user === 'admin' && pass === '12345') {
+            loginError.style.color = '#27ae60';
+            loginError.textContent = 'Acceso concedido...';
+            localStorage.setItem('usuarioNovaTech', 'Administrador'); 
+            setTimeout(() => window.location.href = 'index.html', 800);
+        } else {
+            loginError.style.color = '#b33d3d'; 
+            loginError.textContent = 'Usuario o contraseña incorrectos.';
+        }
+    });
 }
 
 // ============================================
@@ -373,14 +437,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('loginForm')) {
         inicializarLogin();
     } else {
-        // Solo llamamos a la API si NO estamos en la pantalla de login
         cargarDatosDesdeMySQL();
     }
-    
-    console.log('🚀 Archivo script.js cargado, leyendo datos desde MySQL');
 });
-
-// Evitar errores de referencia en el navegador
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { pedidos, renderizarTablaPedidos, actualizarEstadisticas, simularActualizacion };
-}
