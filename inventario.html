@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaTech - Inventario</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar"><div class="brand"><div class="brand-icon">N</div><div><strong>NovaTech</strong><span>Portal de gestión</span></div></div>
+    <nav class="nav-menu"><p class="nav-title">MENÚ PRINCIPAL</p><a class="nav-link" href="index.html"><span>📊</span> Dashboard</a><a class="nav-link active" href="inventario.html"><span>📦</span> Inventario</a><a class="nav-link" href="pedidos.html"><span>📋</span> Lista de Pedidos</a></nav>
+    <div class="sidebar-bottom"><div class="mini-status"><span class="dot"></span><div><strong>Sistema operativo</strong><small>Docker + CI/CD</small></div></div></div>
+  </aside>
+  <main class="main-content">
+    <header class="topbar"><div><p class="eyebrow">MÓDULO</p><h1>Inventario</h1><p class="page-description">Control de existencias, entradas, salidas y alertas de productos tecnológicos.</p></div><div class="top-actions"><span class="version">v<span id="version">1.0.0</span></span><span class="env">PRODUCCIÓN</span></div></header>
+    <section class="inventory-stats">
+      <div class="inventory-stat inventory-total"><span class="inventory-stat-icon">📦</span><div><strong id="totalProductos">0</strong><small>Productos registrados</small></div></div>
+      <div class="inventory-stat inventory-available"><span class="inventory-stat-icon">🟢</span><div><strong id="productosDisponibles">0</strong><small>Stock saludable</small></div></div>
+      <div class="inventory-stat inventory-low"><span class="inventory-stat-icon">⚠️</span><div><strong id="productosStockBajo">0</strong><small>Stock bajo</small></div></div>
+      <div class="inventory-stat inventory-out"><span class="inventory-stat-icon">🔴</span><div><strong id="productosAgotados">0</strong><small>Agotados</small></div></div>
+    </section>
+    <section class="content-card">
+      <div class="section-heading"><div><p class="eyebrow">CATÁLOGO</p><h2 id="formProductoTitulo">Registrar producto</h2></div></div>
+      <form id="formProducto" class="inventory-form">
+        <input type="hidden" id="skuOriginal">
+        <label>SKU<input id="productoSku" required maxlength="30" placeholder="Ej. LAP-HP-15"></label>
+        <label>Nombre del producto<input id="productoNombre" required maxlength="100" placeholder="Nombre del producto"></label>
+        <label>Categoría<select id="productoCategoria" required><option value="">Seleccionar...</option><option>Laptops</option><option>Periféricos</option><option>Monitores</option><option>Componentes</option><option>Software</option><option>Almacenamiento</option></select></label>
+        <label>Stock actual<input id="productoStock" type="number" min="0" step="1" required value="0"></label>
+        <label>Stock mínimo<input id="productoMinimo" type="number" min="0" step="1" required value="5"></label>
+        <div class="form-actions"><button class="btn-actualizar" id="guardarProductoBtn" type="submit">Agregar producto</button><button class="btn-secondary" id="cancelarEdicionBtn" type="button" hidden>Cancelar edición</button></div>
+      </form>
+    </section>
+    <section class="content-card">
+      <div class="section-heading"><div><p class="eyebrow">CONTROL DE EXISTENCIAS</p><h2>Lista de inventario</h2></div><button onclick="actualizarInventario()" class="btn-actualizar" type="button">🔄 Actualizar vista</button></div>
+      <div class="inventory-summary"><span><strong id="unidadesTotales">0</strong> unidades en inventario</span><span>•</span><span><strong id="alertasInventario">0</strong> alertas requieren atención</span></div>
+      <div class="inventory-filters"><input type="search" id="buscadorInventario" placeholder="🔍 Buscar por SKU, producto o categoría..."><select id="filtroCategoria"><option value="todas">Todas las categorías</option><option>Laptops</option><option>Periféricos</option><option>Monitores</option><option>Componentes</option><option>Software</option><option>Almacenamiento</option></select><select id="filtroEstadoInventario"><option value="todos">Todos los estados</option><option value="disponible">Disponible</option><option value="bajo">Stock bajo</option><option value="agotado">Agotado</option></select></div>
+      <div class="table-container"><table><thead><tr><th>SKU</th><th>PRODUCTO</th><th>CATEGORÍA</th><th>STOCK</th><th>STOCK MÍNIMO</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody id="tabla-inventario"></tbody></table></div>
+    </section>
+    <section class="content-card">
+      <div class="section-heading"><div><p class="eyebrow">MOVIMIENTOS</p><h2>Registrar entrada o salida</h2></div></div>
+      <form id="formMovimiento" class="inventory-form movement-form">
+        <label>Producto<select id="movimientoSku" required><option value="">Seleccionar producto...</option></select></label>
+        <label>Tipo de movimiento<select id="tipoMovimiento"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></label>
+        <label>Cantidad<input id="movimientoCantidad" type="number" min="1" step="1" required placeholder="Ej. 5"></label>
+        <label>Motivo<input id="movimientoMotivo" maxlength="120" placeholder="Compra, venta, ajuste..."></label>
+        <div class="form-actions"><button class="btn-actualizar" id="movimientoSubmit" type="submit">Registrar entrada</button></div>
+      </form>
+      <p class="help-text">Las salidas no pueden superar el stock disponible. Cada movimiento actualiza el stock y se guardará en la base de datos.</p>
+    </section>
+    <section class="content-card reports-card" id="reportesInventario">
+      <div class="section-heading"><div><p class="eyebrow">ANÁLISIS DEL INVENTARIO</p><h2>Reportes y estadísticas</h2></div><button class="btn-actualizar" type="button" onclick="exportarReporteInventario()">⬇ Exportar reporte CSV</button></div>
+      <div class="report-kpis">
+        <article class="report-kpi"><span>Valor de unidades*</span><strong id="reporteUnidades">0</strong><small>Unidades físicas en stock</small></article>
+        <article class="report-kpi"><span>Entradas registradas</span><strong id="reporteEntradas">0</strong><small id="reporteCantidadEntradas">0 unidades ingresadas</small></article>
+        <article class="report-kpi"><span>Salidas registradas</span><strong id="reporteSalidas">0</strong><small id="reporteCantidadSalidas">0 unidades retiradas</small></article>
+        <article class="report-kpi report-kpi-alert"><span>Productos por reponer</span><strong id="reporteReposicion">0</strong><small>Stock bajo o agotado</small></article>
+      </div>
+    </section>
+    <section class="system-info"><div><span class="label">📅 Última actualización</span><strong id="ultimaActualizacion">-</strong></div><div><span class="label">🔧 Pipeline</span><strong class="text-success" id="estadoPipeline">✅ Exitoso</strong></div><div><span class="label">🐳 Contenedor</span><strong class="text-success" id="estadoContenedor">✅ Activo (DB Conectada)</strong></div></section>
+    <footer>© 2026 NovaTech S.A.C. · Gestión de inventario</footer>
+  </main>
+</div>
+<script src="script.js"></script>
+</body></html>

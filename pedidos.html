@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaTech - Gestión de Pedidos</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">N</div>
+      <div>
+        <strong>NovaTech</strong>
+        <span>Portal de gestión</span>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <p class="nav-title">MENÚ PRINCIPAL</p>
+      <a class="nav-link" href="index.html"><span>📊</span> Dashboard</a>
+      <a class="nav-link" href="inventario.html"><span>📦</span> Inventario</a>
+      <a class="nav-link active" href="pedidos.html"><span>📋</span> Lista de Pedidos</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="mini-status">
+        <span class="dot"></span>
+        <div>
+          <strong>Sistema operativo</strong>
+          <small>Docker + CI/CD</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">MÓDULO COMERCIAL</p>
+        <h1>Gestión y Lista de Pedidos</h1>
+        <p class="page-description">Consulta, registra y realiza seguimiento en tiempo real de todos los pedidos de clientes.</p>
+      </div>
+      <div class="top-actions">
+        <span class="version">v<span id="version">0.2-avance-2</span></span>
+        <span class="env">PRODUCCIÓN</span>
+      </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas KPI -->
+    <section class="stats">
+      <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div>
+          <div class="stat-number" id="totalPedidos">0</div>
+          <div class="stat-label">Total Pedidos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div>
+          <div class="stat-number" id="totalClientes">0</div>
+          <div class="stat-label">Clientes Atendidos</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div>
+          <div class="stat-number" id="totalVentas">S/ 0.00</div>
+          <div class="stat-label">Ventas Totales</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div>
+          <div class="stat-number" id="estadoEntregado">0</div>
+          <div class="stat-label">Pedidos Entregados</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulario para Registrar Nuevo Pedido -->
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">VENTAS Y DESPACHOS</p>
+          <h2>Registrar Nuevo Pedido</h2>
+        </div>
+      </div>
+      <form id="formNuevoPedido" class="inventory-form" style="grid-template-columns: repeat(3, 1fr) repeat(2, 1fr) auto;">
+        <label>
+          Código Pedido
+          <input type="text" id="pedidoCodigo" placeholder="Ej: PED-007" required>
+        </label>
+        <label>
+          Cliente
+          <input type="text" id="pedidoCliente" placeholder="Nombre del cliente o empresa" required>
+        </label>
+        <label>
+          Producto
+          <input type="text" id="pedidoProducto" placeholder="Ej: Laptop HP 15 o Mouse" required>
+        </label>
+        <label>
+          Cantidad
+          <input type="number" id="pedidoCantidad" min="1" step="1" value="1" required>
+        </label>
+        <label>
+          Precio Unitario (S/)
+          <input type="number" id="pedidoPrecio" min="0" step="0.10" placeholder="0.00" required>
+        </label>
+        <label>
+          Estado
+          <select id="pedidoEstado">
+            <option value="pendiente">Pendiente</option>
+            <option value="enviado">Enviado</option>
+            <option value="entregado">Entregado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </label>
+        <div class="form-actions" style="margin-bottom: 2px;">
+          <button type="submit" class="btn-actualizar" style="height: 42px;">➕ Registrar Pedido</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Tabla de Pedidos -->
+    <section class="content-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">REGISTROS</p>
+          <h2>Historial de Pedidos</h2>
+        </div>
+        <button onclick="cargarDatosDesdeMySQL()" class="btn-actualizar" type="button">🔄 Sincronizar</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>CÓDIGO</th>
+              <th>CLIENTE</th>
+              <th>PRODUCTO</th>
+              <th>CANTIDAD</th>
+              <th>PRECIO UNIT.</th>
+              <th>TOTAL</th>
+              <th>ESTADO</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-pedidos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Información del Sistema -->
+    <section class="system-info">
+      <div>
+        <span class="label">📅 Última actualización</span>
+        <strong id="ultimaActualizacion">-</strong>
+      </div>
+      <div>
+        <span class="label">🔧 Pipeline</span>
+        <strong class="text-success" id="estadoPipeline">✅ Exitoso</strong>
+      </div>
+      <div>
+        <span class="label">🐳 Contenedor</span>
+        <strong class="text-success" id="estadoContenedor">✅ Activo (Express + MySQL)</strong>
+      </div>
+    </section>
+
+    <footer>© 2026 NovaTech S.A.C. · Módulo de Gestión de Pedidos</footer>
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaTech - Acceso Administrativo</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+<!-- Orbes de luz ambiental decorativos para dar vida y profundidad -->
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<main class="login-shell">
+  <section class="login-card">
+    <div class="card-glow-bar"></div>
+    <div class="login-brand">
+      <div class="brand-icon">N</div>
+      <div class="brand-text">
+        <strong>NovaTech</strong>
+        <span>Portal de Gestión DevOps</span>
+      </div>
+    </div>
+    
+    <div class="login-heading">
+      <div class="eyebrow-badge">
+        <span class="pulsing-dot"></span>
+        <span class="eyebrow">ÁREA RESTRINGIDA</span>
+      </div>
+      <h1>Acceso administrativo</h1>
+      <p>Ingresa tus credenciales para acceder al panel de control y pedidos.</p>
+    </div>
+
+    <!-- Banner con credenciales de prueba -->
+    <div class="demo-credentials-box">
+      <span class="demo-icon">💡</span>
+      <div class="demo-info">
+        <span class="demo-label">Credenciales de Acceso:</span>
+        <span class="demo-val">Usuario: <code>admin</code> &nbsp;|&nbsp; Clave: <code>12345</code></span>
+      </div>
+      <button type="button" id="btnFillDemo" class="btn-fill-demo">Usar Demo</button>
+    </div>
+
+    <form id="loginForm" class="login-form" novalidate>
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input id="username" name="username" type="text" autocomplete="username" placeholder="Ingresa tu usuario (admin)" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña (12345)" required>
+          <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">👁️</button>
+        </div>
+      </div>
+
+      <button class="login-button" type="submit" id="btnLoginSubmit">
+        <span>Iniciar sesión</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <p id="loginError" class="login-error" role="alert"></p>
+    </form>
+
+    <div class="login-footer">
+      <span class="dot-secure"></span>
+      <span>Sistema protegido · NovaTech S.A.C. · v0.2-avance-2</span>
+    </div>
+  </section>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
