@@ -1,1 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaTech - Mesa de Ayuda</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">N</div><div><strong>NovaTech</strong><span>Portal de gestión</span></div></div>
+    <nav class="nav-menu"><p class="nav-title">MENÚ PRINCIPAL</p>
+      <a class="nav-link" href="index.html"><span>📊</span> Dashboard</a>
+      <a class="nav-link" href="inventario.html"><span>📦</span> Inventario</a>
+      <a class="nav-link" href="pedidos.html"><span>📋</span> Lista de Pedidos</a>
+      <a class="nav-link active" href="incidencias.html"><span>🛠️</span> Incidencias y solicitudes</a>
+    </nav>
+    <div class="sidebar-bottom"><div class="mini-status"><span class="dot"></span><div><strong>Mesa de ayuda activa</strong><small>Seguimiento de casos</small></div></div></div>
+  </aside>
+  <main class="main-content support-main">
+    <header class="topbar"><div><p class="eyebrow">CENTRO DE ATENCIÓN · NOVATECH</p><h1>Incidencias y solicitudes</h1><p class="page-description">Registra problemas, solicita atención y controla cada caso hasta su resolución.</p></div><div class="top-actions"><span class="version">Mesa de ayuda</span><span class="env">SEGUIMIENTO</span></div></header>
 
+    <section class="support-hero">
+      <div><span class="support-hero-tag">GESTIÓN DE SERVICIOS TI</span><h2>Todo caso tiene un responsable y un seguimiento.</h2><p>Centraliza reportes de inventario, pedidos, accesos y soporte técnico en un solo lugar.</p></div>
+      <div class="support-hero-icon">🎧</div>
+    </section>
+
+    <section class="support-kpis" aria-label="Resumen de casos">
+      <article class="support-kpi"><span class="support-kpi-icon kpi-blue">📁</span><div><strong id="kpiTotal">0</strong><small>Casos registrados</small></div></article>
+      <article class="support-kpi"><span class="support-kpi-icon kpi-red">🚨</span><div><strong id="kpiOpen">0</strong><small>Abiertos</small></div></article>
+      <article class="support-kpi"><span class="support-kpi-icon kpi-amber">⏳</span><div><strong id="kpiProgress">0</strong><small>En atención</small></div></article>
+      <article class="support-kpi"><span class="support-kpi-icon kpi-green">✓</span><div><strong id="kpiClosed">0</strong><small>Resueltos</small></div></article>
+    </section>
+
+    <section class="support-layout">
+      <div class="content-card support-form-card">
+        <div class="section-heading"><div><p class="eyebrow">NUEVO REGISTRO</p><h2>Crear un caso</h2></div><span class="form-step">01 / 01</span></div>
+        <form id="caseForm" class="support-form">
+          <label>Tipo de registro<select id="caseType" required><option value="Incidencia">Incidencia</option><option value="Solicitud">Solicitud</option></select></label>
+          <label>Asunto<input id="caseTitle" maxlength="90" placeholder="Ej. No puedo actualizar el stock" required></label>
+          <label>Área afectada<select id="caseArea" required><option value="Inventario">Inventario</option><option value="Pedidos">Pedidos</option><option value="Accesos">Accesos / Login</option><option value="Infraestructura">Infraestructura</option><option value="Otro">Otro</option></select></label>
+          <div class="support-form-row"><label>Prioridad<select id="casePriority"><option value="Baja">Baja</option><option value="Media" selected>Media</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option></select></label><label>Responsable<input id="caseOwner" maxlength="50" placeholder="Ej. Equipo de soporte"></label></div>
+          <label>Descripción<textarea id="caseDescription" rows="4" maxlength="600" placeholder="Describe qué ocurrió o qué necesitas..." required></textarea></label>
+          <label>Solicitante<input id="caseRequester" maxlength="60" placeholder="Nombre de quien reporta" required></label>
+          <button class="btn-actualizar support-submit" type="submit">＋ Registrar caso</button>
+          <p class="support-hint">Los registros se guardan en este navegador y puedes actualizarlos desde el seguimiento.</p>
+        </form>
+      </div>
+
+      <div class="support-right">
+        <section class="content-card support-list-card">
+          <div class="section-heading support-list-heading"><div><p class="eyebrow">CONTROL Y SEGUIMIENTO</p><h2>Bandeja de casos</h2></div><button type="button" class="btn-secondary" id="exportCases">↓ Exportar CSV</button></div>
+          <div class="support-filters"><input id="caseSearch" type="search" placeholder="Buscar por código, asunto o solicitante..."><select id="caseStatusFilter"><option value="Todos">Todos los estados</option><option>Abierto</option><option>En atención</option><option>En espera</option><option>Resuelto</option></select><select id="caseTypeFilter"><option value="Todos">Todos los tipos</option><option>Incidencia</option><option>Solicitud</option></select></div>
+          <div id="caseList" class="case-list" aria-live="polite"></div>
+        </section>
+        <section class="content-card support-detail-card" id="caseDetail">
+          <div class="empty-detail"><span>🗂️</span><h3>Selecciona un caso</h3><p>Podrás revisar su información, cambiar el estado y registrar avances en la bitácora.</p></div>
+        </section>
+      </div>
+    </section>
+    <footer>© 2026 NovaTech S.A.C. · Mesa de ayuda y gestión de incidencias</footer>
+  </main>
+</div>
+<script src="script.js"></script><script src="incidencias.js"></script>
+  
+</body></html>
