@@ -1,13 +1,11 @@
-# Usar imagen ligera de nginx
 FROM nginx:alpine
+WORKDIR /usr/share/nginx/html
 
-# Copiar archivos de la aplicación al contenedor
-COPY index.html /usr/share/nginx/html/
-COPY style.css /usr/share/nginx/html/
-COPY script.js /usr/share/nginx/html/
+# Incluye todas las vistas HTML (dashboard, login, inventario, pedidos e incidencias)
+COPY ./*.html ./
+COPY style.css ./style.css
+COPY script.js ./script.js
+COPY incidencias.js ./incidencias.js
 
-# Exponer el puerto 80
 EXPOSE 80
-
-# Comando para iniciar nginx
 CMD ["nginx", "-g", "daemon off;"]
