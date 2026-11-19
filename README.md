@@ -1,24 +1,216 @@
-# 🛒 NovaTech - Portal de Pedidos
+# 🛒 NovaTech S.A.C. - Portal Empresarial y Solución DevOps
 
-[![CI/CD Pipeline](https://github.com/WhariCDH/novatech-devops/actions/workflows/ci.yml/badge.svg)](https://github.com/WhariCDH/novatech-devops/actions/workflows/ci.yml)
+[![CI/CD Pipeline NovaTech](https://github.com/WhariCDH/novatech-devops/actions/workflows/ci.yml/badge.svg)](https://github.com/WhariCDH/novatech-devops/actions/workflows/ci.yml)
+[![Docker Image](https://img.shields.io/badge/docker-nginx%3Aalpine-blue.svg)](https://hub.docker.com/_/nginx)
+[![Node.js](https://img.shields.io/badge/node.js-20%2B-green.svg)](https://nodejs.org/)
+[![Terraform](https://img.shields.io/badge/IaC-Terraform%20v1.5%2B-purple.svg)](https://www.terraform.io/)
+[![Release](https://img.shields.io/badge/release-v1.0.0-orange.svg)](https://github.com/WhariCDH/novatech-devops/releases)
 
-Solución DevOps para Comercial NovaTech S.A.C. - Aplicación web de portal de pedidos con pipeline CI/CD automatizado, contenedorización con Docker e Infraestructura como Código.
-
----
-
-## 📋 Descripción del Proyecto
-
-Este proyecto fue desarrollado como parte de la Tarea Académica 1 (TA1) del curso **Herramientas de Desarrollo Profesional - TIC**. El objetivo es implementar una solución DevOps para optimizar el proceso de desarrollo, validación y despliegue de software en un contexto empresarial.
-
-**NovaTech S.A.C.** es una empresa peruana dedicada a la comercialización de equipos tecnológicos, que actualmente enfrenta problemas con procesos manuales que generan errores y retrasos.
-
-### Problemas identificados
-- ⏱️ Despliegues manuales que toman hasta **90 minutos**
-- ❌ **20%** de incidentes después de cada despliegue
-- 🔧 **45 horas/mes** en tareas repetitivas
-- 🌐 Entornos inconsistentes ("en mi máquina funciona")
-- 📊 **8-12 errores/mes** de inventario publicados
+Solución DevOps integral implementada para **Comercial NovaTech S.A.C.** como parte del **Avance de Proyecto 3** del curso **Herramientas de Desarrollo**. Integra seguimiento estructurado de incidencias, Integración Continua (CI), Entrega Continua (CD) hacia AWS EC2, contenedorización con Docker e Infraestructura como Código (IaC).
 
 ---
 
-## 🏗️ Arquitectura DevOps
+## 📋 1. Descripción del Proyecto y Problema de Negocio
+
+**NovaTech S.A.C.** es una empresa peruana dedicada a la comercialización y distribución mayorista y minorista de equipos informáticos y periféricos tecnológicos.
+
+### ⚠️ Diagnóstico Operativo Inicial
+Antes de la adopción de prácticas DevOps, la compañía enfrentaba los siguientes cuellos de botella:
+- ⏱️ **Despliegues manuales de 90 minutos:** El pase a producción requería transferencias manuales por FTP y reinicios no coordinados.
+- ❌ **20% de incidentes post-despliegue:** Fallas de compatibilidad en librerías y rutas rotas (ej. assets JS no copiados al contenedor).
+- 🔧 **45 horas/mes invertidas en tareas repetitivas:** Pruebas manuales propensas a error humano antes de cada entrega.
+- 🌐 **Inconsistencia de entornos:** Desalineación entre los equipos de desarrollo y producción ("en mi máquina sí funciona").
+- 📊 **8 a 12 discrepancias mensuales en inventario:** Stock negativo y pedidos sin trazabilidad de estado.
+
+### 🎯 Solución Implementada
+- **Portal Web Multi-Módulo:** Dashboard principal, Módulo de Inventario con semáforo de existencias, Módulo de Pedidos con filtros y Nuevo Módulo de Mesa de Ayuda (Incidencias y Solicitudes) con bitácora y exportación a CSV.
+- **Pipeline Automatizado CI/CD:** Validación de sintaxis y reglas de negocio en Node 20 (`test`), empaquetado y prueba funcional en Docker (`build`), y despliegue continuo vía SSH hacia AWS EC2 (`deploy`).
+- **Gestión de Incidentes en Git:** Sistema formal de tickets, labels semánticas, milestone y cierre automático mediante commits.
+- **Infraestructura como Código:** Despliegue reproducible y seguro en AWS mediante Terraform con Amazon Linux 2023 y SSH restringido.
+
+---
+
+## 🏗️ 2. Arquitectura DevOps
+
+```mermaid
+flowchart LR
+    Dev["👨‍💻 Desarrollador\n(Git Feature Branch)"] -->|"git push / PR"| GH["🐙 GitHub Repo\nWhariCDH/novatech-devops"]
+    GH -->|"Disparador CI/CD"| GHA["⚡ GitHub Actions\n(Workflow: ci.yml)"]
+    
+    subgraph CI["Integración Continua (CI)"]
+        GHA --> JobTest["🧪 Job: test\n- Node.js 20\n- tests/test.js\n- 40 tests unitarios"]
+        JobTest --> JobBuild["🐳 Job: build\n- Docker buildx\n- Smoke tests curl (200 OK)\n- Push a GHCR"]
+    end
+    
+    subgraph CD["Entrega Continua (CD)"]
+        JobBuild -->|"Solo rama main"| JobDeploy["🚀 Job: deploy\n- SSH a AWS EC2\n- Docker pull / run\n- Healthcheck local"]
+    end
+    
+    JobDeploy -->|"Despliegue automático"| EC2["☁️ AWS EC2\n(Amazon Linux 2023)\nContenedor Nginx :80\nhttp://EC2_PUBLIC_IP"]
+```
+
+---
+
+## 📂 3. Estructura del Repositorio
+
+```text
+novatech-devops/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── incidencia.md          # Plantilla oficial para reporte de bugs e incidentes
+│   │   └── solicitud.md           # Plantilla para pedidos de servicio o mejoras
+│   ├── PULL_REQUEST_TEMPLATE.md   # Formato estándar de PR con checklist y cierre de issues
+│   └── workflows/
+│       └── ci.yml                 # Pipeline CI/CD (jobs: test -> build -> deploy)
+├── docs/
+│   ├── DEPLOY.md                  # Procedimiento de despliegue y guía de secrets
+│   ├── GH-SETUP.md                # Configuración de labels, milestone e issues en GitHub
+│   ├── LABS.md                    # Evidencia técnica de los 3 Laboratorios del curso
+│   ├── PRESENTACION.md            # Guion e índice de la exposición oral (10-12 min)
+│   └── VERIFICACION.md            # Checklist de rúbrica, evidencias y nota estimada
+├── scripts/
+│   ├── deploy.ps1                 # Script de despliegue local automatizado en Docker
+│   ├── setup-github.ps1           # Automatización de creación de labels e issues vía API/gh
+│   └── verify-endpoints.js        # Servidor HTTP local para verificación de rutas (sin 404)
+├── tests/
+│   └── test.js                    # Suite de 40 pruebas en Node puro (exit 0 / exit 1)
+├── .dockerignore                  # Exclusión de archivos pesados o sensibles en la imagen
+├── Dockerfile                     # Imagen de producción basada en nginx:alpine
+├── index.html                     # Dashboard general de NovaTech
+├── inventario.html                # Módulo de existencias, stock mínimo y movimientos
+├── pedidos.html                   # Módulo de lista de pedidos y filtros de estado
+├── incidencias.html               # Módulo de Mesa de Ayuda y seguimiento de casos
+├── Login.html                     # Portal de autenticación de operadores
+├── script.js                      # Lógica de dashboard, inventario y pedidos
+├── incidencias.js                 # Controlador del módulo de Mesa de Ayuda
+├── style.css                      # Hoja de estilos corporativa NovaTech
+├── terraform.tf                   # Propuesta IaC endurecida para AWS (AL2023 + SSH seguro)
+└── README.md                      # Documentación principal del proyecto
+```
+
+---
+
+## 💻 4. Cómo Ejecutar Localmente
+
+### Opción A: Mediante Docker (Recomendado)
+```powershell
+# Ejecución automatizada con verificación de salud
+.\scripts\deploy.ps1 -Tag "v1.0.0" -Port 8080
+```
+O directamente con comandos Docker:
+```bash
+docker build -t novatech:latest .
+docker run -d -p 8080:80 --name novatech-local novatech:latest
+```
+Abre en tu navegador: [http://localhost:8080](http://localhost:8080)
+
+### Opción B: Mediante Node.js o Servidor Estático
+Si no cuentas con Docker en tu entorno:
+```bash
+# 1. Ejecutar verificación de endpoints nativa
+node scripts/verify-endpoints.js
+
+# 2. Servir los archivos estáticos
+npx serve -l 8080 .
+```
+
+---
+
+## 🧪 5. Pipeline CI/CD Explicado Job por Job
+
+El archivo [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) define las tres etapas del ciclo DevOps:
+
+### 1️⃣ Job `test` (Integración Continua)
+- **Ejecuta en:** `ubuntu-latest`
+- **Herramientas:** Node.js v20 nativo (sin dependencias de terceros en `package.json`).
+- **Acción:** Ejecuta [tests/test.js](file:///tests/test.js), cubriendo:
+  - Sintaxis de código (`node --check`).
+  - Existencia de 12 archivos requeridos.
+  - Validación de directivas críticas en `Dockerfile` y `.dockerignore`.
+  - Integridad de vistas HTML principales.
+  - Reglas de negocio: códigos con prefijo `PED-`, estados de entrega válidos, importes > 0, cálculo consistente de totales y códigos de incidencias (`INC-` / `SOL-`).
+  - **Control de flujo:** Si falla una sola aserción, termina con `process.exit(1)`, cancelando los siguientes jobs.
+
+### 2️⃣ Job `build` (Empaquetado y Verificación Funcional)
+- **Depende de:** `test` (`needs: test`).
+- **Acción:**
+  - Construye la imagen Docker con tags `novatech:latest` y `novatech:<SHA>`.
+  - Inicia un contenedor de prueba efímero en el runner (`docker run -d -p 8080:80`).
+  - Realiza peticiones con `curl -fsS` a cada vista (`/`, `index.html`, `inventario.html`, `pedidos.html`, `incidencias.html`, `Login.html`) y a cada script (`script.js`, `incidencias.js`, `style.css`), comprobando respuesta HTTP 200 sin errores 404.
+  - Si el commit pertenece a `main`, autentica y publica la imagen en **GitHub Container Registry (GHCR)**: `ghcr.io/wharicdh/novatech-devops:latest`.
+
+### 3️⃣ Job `deploy` (Entrega Continua a AWS EC2)
+- **Condición de ejecución:** Exclusivamente en eventos `push` hacia la rama `main`.
+- **Acción:**
+  - Valida la disponibilidad de los secretos de despliegue.
+  - Conecta por SSH hacia el servidor EC2 mediante la acción oficial `appleboy/ssh-action@v1.0.3`.
+  - Descarga la versión más reciente desde GHCR.
+  - Realiza un reinicio controlado del contenedor (`--restart always -p 80:80`).
+  - Ejecuta un smoke test final con curl en la instancia.
+
+---
+
+## 🔐 6. Despliegue en la Nube y Secretos Requeridos
+
+Para habilitar la entrega automática hacia AWS EC2, se deben configurar los siguientes secretos en GitHub (`Settings` > `Secrets and variables` > `Actions`):
+
+| Secret | Descripción | Requerido |
+|---|---|---|
+| `EC2_HOST` | Dirección IP pública o DNS del servidor AWS EC2 | Sí |
+| `EC2_USER` | Usuario SSH (`ec2-user` para Amazon Linux 2023) | Sí |
+| `EC2_SSH_KEY` | Clave privada SSH (`.pem`) completa con cabeceras | Sí |
+| `EC2_SSH_PORT` | Puerto de conexión SSH (default: 22) | Opcional |
+| `GHCR_TOKEN` | Token personal de GitHub si el paquete GHCR es privado | Opcional |
+
+> Consulta el procedimiento completo y la configuración de llaves en [docs/DEPLOY.md](file:///docs/DEPLOY.md).
+
+---
+
+## 🛠️ 7. Gestión de Incidentes en Git (Criterio 1 de Rúbrica)
+
+La gestión de incidentes se realiza de manera nativa y transparente en GitHub:
+
+### Etiquetas del Repositorio:
+- **Por Tipo:** `incidencia` (errores), `solicitud` (requerimientos de soporte/mejora).
+- **Por Prioridad:** `prioridad-alta`, `prioridad-media`, `prioridad-baja`.
+- **Por Módulo:** `modulo-inventario`, `modulo-pedidos`, `modulo-incidencias`.
+
+### Ciclo de Vida:
+```
+[ Abierto ]  ──▶  [ En atención ]  ──▶  [ Resuelto ]
+```
+
+### Cierre Automático:
+Los commits o Pull Requests cierran las issues automáticamente al utilizar palabras reservadas:
+```bash
+git commit -m "fix(docker): resolver carga de incidencias.js en contenedor
+
+Closes #4, Closes #5"
+```
+> Consulta la guía de configuración y las 6 issues completas en [docs/GH-SETUP.md](file:///docs/GH-SETUP.md).
+
+---
+
+## 🧪 8. Evidencia de los 3 Laboratorios del Curso
+
+El proyecto da cumplimiento total a los tres laboratorios académicos:
+- **Laboratorio 1:** Control de versiones, ramas, plantillas de issues, milestone y PR con revisión.
+- **Laboratorio 2:** Pipeline de Integración Continua con GitHub Actions, Dockerfile corregido y 40 pruebas en Node.js.
+- **Laboratorio 3:** Entrega Continua hacia AWS EC2, script `scripts/deploy.ps1` e Infraestructura como Código en `terraform.tf`.
+
+> Consulta las matrices y enlaces de evidencia en [docs/LABS.md](file:///docs/LABS.md).
+
+---
+
+## 🌐 9. URL de la Aplicación Desplegada
+
+- **Ambiente de Producción en la Nube:**
+  `http://<EC2_PUBLIC_IP>` *(Asignada dinámicamente por la instancia AWS EC2)*
+- **Ambiente Local de Desarrollo:**
+  [http://localhost:8080](http://localhost:8080)
+
+---
+
+## 📄 10. Licencia y Equipo de Desarrollo
+
+Este proyecto está distribuido bajo la licencia **MIT**. Desarrollado para el curso **Herramientas de Desarrollo** (Avance de Proyecto 3) - NovaTech S.A.C.
