@@ -31,11 +31,11 @@ foreach ($num in 8..13) {
     try {
         $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($body)
         $resp = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/issues/$num" -Method Patch -Headers $headers -Body $bodyBytes -ContentType "application/json; charset=utf-8"
-        Write-Host "  ✔ Issue #$num vinculada a Milestone y asignada a $Assignee" -ForegroundColor Green
+        Write-Host "  ✔ Issue #${num} vinculada a Milestone y asignada a $Assignee" -ForegroundColor Green
     } catch {
         $errDetail = $_.ErrorDetails.Message
         if (-not $errDetail) { $errDetail = $_.Exception.Message }
-        Write-Host "  ❌ Error en issue #$num: $errDetail" -ForegroundColor Red
+        Write-Host "  ❌ Error en issue #${num} : $errDetail" -ForegroundColor Red
     }
 }
 
