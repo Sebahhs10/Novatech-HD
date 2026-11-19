@@ -1,6 +1,6 @@
 # 🐙 Guía de Gestión de Incidentes en GitHub (Rúbrica - Criterio 1)
 
-Este documento detalla el procedimiento completo para configurar el **Sistema de Seguimiento de Incidentes** en el repositorio [WhariCDH/novatech-devops](https://github.com/WhariCDH/novatech-devops) de acuerdo con los requerimientos del **Avance de Proyecto 3** del curso *Herramientas de Desarrollo*.
+Este documento detalla el procedimiento completo para configurar el **Sistema de Seguimiento de Incidentes** en el repositorio [Sebahhs10/Novatech-HD](https://github.com/Sebahhs10/Novatech-HD) de acuerdo con los requerimientos del **Avance de Proyecto 3** del curso *Herramientas de Desarrollo*.
 
 ---
 

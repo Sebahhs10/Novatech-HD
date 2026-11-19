@@ -25,7 +25,7 @@ Este documento recopila las evidencias técnicas del desarrollo y entrega de los
 
 ### 1.2. Evidencias Técnicas Implementadas
 1. **Repositorio Remoto Oficial:**
-   - URL: [https://github.com/WhariCDH/novatech-devops](https://github.com/WhariCDH/novatech-devops)
+   - URL: [https://github.com/Sebahhs10/Novatech-HD](https://github.com/Sebahhs10/Novatech-HD)
 2. **Rama de Trabajo:**
    - `feature/avance-proyecto-3`
 3. **Plantillas en el Repositorio:**
@@ -47,8 +47,8 @@ Este documento recopila las evidencias técnicas del desarrollo y entrega de los
 | `#6` | `[SOL-0006] Implementar pipeline CD automático hacia AWS EC2 mediante SSH y GHCR` | Solicitud | Alta | CD / Deploy | Resuelto (ci.yml) |
 
 ### 1.4. Capturas y Enlaces de Evidencia (Lab 1)
-- **Enlace a Issues en GitHub:** [https://github.com/WhariCDH/novatech-devops/issues](https://github.com/WhariCDH/novatech-devops/issues)
-- **Enlace a Pull Requests:** [https://github.com/WhariCDH/novatech-devops/pulls](https://github.com/WhariCDH/novatech-devops/pulls)
+- **Enlace a Issues en GitHub:** [https://github.com/Sebahhs10/Novatech-HD/issues](https://github.com/Sebahhs10/Novatech-HD/issues)
+- **Enlace a Pull Requests:** [https://github.com/Sebahhs10/Novatech-HD/pulls](https://github.com/Sebahhs10/Novatech-HD/pulls)
 - **Tablero Jira / GitHub Projects:**
   > [!NOTE]
   > `[EVIDENCIA PENDIENTE: Insertar aquí enlace o captura del tablero Jira / GitHub Projects del equipo]`
@@ -91,7 +91,7 @@ Código de salida: 0 (Éxito)
 
 ### 2.4. Capturas y Enlaces de Evidencia (Lab 2)
 - **Enlace al historial de ejecuciones en GitHub Actions:**
-  [https://github.com/WhariCDH/novatech-devops/actions](https://github.com/WhariCDH/novatech-devops/actions)
+  [https://github.com/Sebahhs10/Novatech-HD/actions](https://github.com/Sebahhs10/Novatech-HD/actions)
 - **Captura de pantalla de la ejecución exitosa de CI:**
   > [!NOTE]
   > `[EVIDENCIA PENDIENTE: Insertar aquí captura de pantalla del run exitoso de GitHub Actions con los jobs test y build en verde]`

@@ -88,7 +88,7 @@ Cada vez que se realiza un merge o push a la rama `main`:
 2. **Job `build`:**
    - Construye la imagen Docker `novatech:latest` y `novatech:<SHA>`.
    - Levanta un contenedor efímero en el runner y comprueba que todas las páginas (`/`, `index.html`, `inventario.html`, `pedidos.html`, `incidencias.html`, `Login.html`) y scripts (`script.js`, `incidencias.js`, `style.css`) respondan HTTP 200 sin 404.
-   - Publica la imagen en GitHub Container Registry (`ghcr.io/wharicdh/novatech-devops:latest`).
+   - Publica la imagen en GitHub Container Registry (`ghcr.io/Sebahhs10/Novatech-HD:latest`).
 3. **Job `deploy`:**
    - Establece sesión SSH segura con la instancia EC2 usando la llave privada.
    - Descarga la nueva imagen desde GHCR (o hace fallback a build local).

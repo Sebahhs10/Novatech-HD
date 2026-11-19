@@ -1,10 +1,10 @@
 # 🛒 NovaTech S.A.C. - Portal Empresarial y Solución DevOps
 
-[![CI/CD Pipeline NovaTech](https://github.com/WhariCDH/novatech-devops/actions/workflows/ci.yml/badge.svg)](https://github.com/WhariCDH/novatech-devops/actions/workflows/ci.yml)
+[![CI/CD Pipeline NovaTech](https://github.com/Sebahhs10/Novatech-HD/actions/workflows/ci.yml/badge.svg)](https://github.com/Sebahhs10/Novatech-HD/actions/workflows/ci.yml)
 [![Docker Image](https://img.shields.io/badge/docker-nginx%3Aalpine-blue.svg)](https://hub.docker.com/_/nginx)
 [![Node.js](https://img.shields.io/badge/node.js-20%2B-green.svg)](https://nodejs.org/)
 [![Terraform](https://img.shields.io/badge/IaC-Terraform%20v1.5%2B-purple.svg)](https://www.terraform.io/)
-[![Release](https://img.shields.io/badge/release-v1.0.0-orange.svg)](https://github.com/WhariCDH/novatech-devops/releases)
+[![Release](https://img.shields.io/badge/release-v1.0.0-orange.svg)](https://github.com/Sebahhs10/Novatech-HD/releases)
 
 Solución DevOps integral implementada para **Comercial NovaTech S.A.C.** como parte del **Avance de Proyecto 3** del curso **Herramientas de Desarrollo**. Integra seguimiento estructurado de incidencias, Integración Continua (CI), Entrega Continua (CD) hacia AWS EC2, contenedorización con Docker e Infraestructura como Código (IaC).
 
@@ -34,7 +34,7 @@ Antes de la adopción de prácticas DevOps, la compañía enfrentaba los siguien
 
 ```mermaid
 flowchart LR
-    Dev["👨‍💻 Desarrollador\n(Git Feature Branch)"] -->|"git push / PR"| GH["🐙 GitHub Repo\nWhariCDH/novatech-devops"]
+    Dev["👨‍💻 Desarrollador\n(Git Feature Branch)"] -->|"git push / PR"| GH["🐙 GitHub Repo\nSebahhs10/Novatech-HD"]
     GH -->|"Disparador CI/CD"| GHA["⚡ GitHub Actions\n(Workflow: ci.yml)"]
     
     subgraph CI["Integración Continua (CI)"]
@@ -137,7 +137,7 @@ El archivo [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) define l
   - Construye la imagen Docker con tags `novatech:latest` y `novatech:<SHA>`.
   - Inicia un contenedor de prueba efímero en el runner (`docker run -d -p 8080:80`).
   - Realiza peticiones con `curl -fsS` a cada vista (`/`, `index.html`, `inventario.html`, `pedidos.html`, `incidencias.html`, `Login.html`) y a cada script (`script.js`, `incidencias.js`, `style.css`), comprobando respuesta HTTP 200 sin errores 404.
-  - Si el commit pertenece a `main`, autentica y publica la imagen en **GitHub Container Registry (GHCR)**: `ghcr.io/wharicdh/novatech-devops:latest`.
+  - Si el commit pertenece a `main`, autentica y publica la imagen en **GitHub Container Registry (GHCR)**: `ghcr.io/Sebahhs10/Novatech-HD:latest`.
 
 ### 3️⃣ Job `deploy` (Entrega Continua a AWS EC2)
 - **Condición de ejecución:** Exclusivamente en eventos `push` hacia la rama `main`.

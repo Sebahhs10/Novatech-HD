@@ -156,7 +156,7 @@ resource "aws_instance" "novatech_server" {
     
     # Clonar repositorio de la empresa
     cd /home/ec2-user
-    git clone https://github.com/WhariCDH/novatech-devops.git || true
+    git clone https://github.com/Sebahhs10/Novatech-HD.git || true
     
     # Desplegar version inicial contenerizada
     cd novatech-devops
