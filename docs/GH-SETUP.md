@@ -46,11 +46,11 @@ gh api -X POST repos/:owner/:repo/milestones -f title="Avance de Proyecto 3" -f 
 
 ---
 
-## 📋 3. Registro de las 6 Issues Reales
+## 📋 3. Registro de las 6 Issues Reales (IDs en Repositorio: #8 a #13)
 
-A continuación se presentan las 6 issues extraídas de los casos de uso reales de NovaTech S.A.C.:
+Las 6 issues reales creadas en el repositorio [Sebahhs10/Novatech-HD](https://github.com/Sebahhs10/Novatech-HD/issues):
 
-### Issue #1: [INC-0001] Producto con stock negativo al registrar salida en Inventario
+### Issue [#8](https://github.com/Sebahhs10/Novatech-HD/issues/8): [INC-0001] Producto con stock negativo al registrar salida en Inventario
 - **Tipo:** Incidencia
 - **Etiquetas:** `incidencia`, `prioridad-alta`, `modulo-inventario`
 - **Milestone:** Avance de Proyecto 3
@@ -61,7 +61,7 @@ A continuación se presentan las 6 issues extraídas de los casos de uso reales 
   2. Notificar al operador mediante mensaje de error visual.
   3. Registrar la incidencia en la bitácora interna.
 
-### Issue #2: [SOL-0002] Habilitar credenciales y permisos para nuevo operador de almacén
+### Issue [#9](https://github.com/Sebahhs10/Novatech-HD/issues/9): [SOL-0002] Habilitar credenciales y permisos para nuevo operador de almacén
 - **Tipo:** Solicitud
 - **Etiquetas:** `solicitud`, `prioridad-media`, `modulo-incidencias`
 - **Milestone:** Avance de Proyecto 3
@@ -71,7 +71,7 @@ A continuación se presentan las 6 issues extraídas de los casos de uso reales 
   1. Asignar perfil de operador con permisos de consulta y actualización de existencias.
   2. Entregar credenciales seguras al usuario solicitante.
 
-### Issue #3: [INC-0003] Pedido no refleja actualización de estado tras despacho
+### Issue [#10](https://github.com/Sebahhs10/Novatech-HD/issues/10): [INC-0003] Pedido no refleja actualización de estado tras despacho
 - **Tipo:** Incidencia
 - **Etiquetas:** `incidencia`, `prioridad-baja`, `modulo-pedidos`
 - **Milestone:** Avance de Proyecto 3
@@ -81,7 +81,7 @@ A continuación se presentan las 6 issues extraídas de los casos de uso reales 
   1. Sincronizar el estado del pedido a 'enviado'.
   2. Comprobar que los filtros del dashboard contabilicen correctamente el estado.
 
-### Issue #4: [INC-0004] Script incidencias.js no cargaba en el contenedor Docker (HTTP 404)
+### Issue [#11](https://github.com/Sebahhs10/Novatech-HD/issues/11): [INC-0004] Script incidencias.js no cargaba en el contenedor Docker (HTTP 404)
 - **Tipo:** Incidencia
 - **Etiquetas:** `incidencia`, `prioridad-alta`, `modulo-incidencias`
 - **Milestone:** Avance de Proyecto 3
@@ -92,7 +92,7 @@ A continuación se presentan las 6 issues extraídas de los casos de uso reales 
   2. Añadir archivo `.dockerignore`.
   3. Validar con curl respuesta 200 en `http://localhost:8080/incidencias.js`.
 
-### Issue #5: [SOL-0005] Automatizar suite de pruebas con validación estricta y código de salida
+### Issue [#12](https://github.com/Sebahhs10/Novatech-HD/issues/12): [SOL-0005] Automatizar suite de pruebas con validación estricta y código de salida
 - **Tipo:** Solicitud
 - **Etiquetas:** `solicitud`, `prioridad-media`, `modulo-inventario`, `modulo-pedidos`
 - **Milestone:** Avance de Proyecto 3
@@ -103,7 +103,7 @@ A continuación se presentan las 6 issues extraídas de los casos de uso reales 
   2. Código de salida estándar (0 éxito, 1 error).
   3. Ejecución automática en el pipeline de GitHub Actions.
 
-### Issue #6: [SOL-0006] Implementar pipeline CD automático hacia AWS EC2 mediante SSH y GHCR
+### Issue [#13](https://github.com/Sebahhs10/Novatech-HD/issues/13): [SOL-0006] Implementar pipeline CD automático hacia AWS EC2 mediante SSH y GHCR
 - **Tipo:** Solicitud
 - **Etiquetas:** `solicitud`, `prioridad-alta`, `modulo-incidencias`
 - **Milestone:** Avance de Proyecto 3

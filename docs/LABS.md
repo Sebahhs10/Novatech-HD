@@ -37,21 +37,18 @@ Este documento recopila las evidencias técnicas del desarrollo y entrega de los
    - [setup-github.ps1](file:///scripts/setup-github.ps1)
    - [GH-SETUP.md](file:///docs/GH-SETUP.md)
 
-### 1.3. Registro de Issues y Trazabilidad (Estado de Creación)
+### 1.3. Registro de Issues y Trazabilidad (Issues Reales Verificadas)
 
-> [!NOTE]
-> Las 6 issues requeridas están formalmente diseñadas y especificadas en el código (`scripts/setup-github.ps1` y `docs/GH-SETUP.md`). Su creación efectiva en el entorno remoto de GitHub se encuentra **PENDIENTE** de ejecución con permisos de usuario.
+Las 6 issues requeridas fueron creadas en el repositorio [Sebahhs10/Novatech-HD](https://github.com/Sebahhs10/Novatech-HD/issues) bajo el Milestone **Avance de Proyecto 3** con sus etiquetas semánticas oficiales:
 
-| ID Placeholder | Título Previsto | Tipo | Prioridad | Módulo | Estado en GitHub |
+| ID Issue | Título Oficial en GitHub | Tipo | Prioridad | Módulo | Estado y Resolución |
 |---|---|---|---|---|---|
-| `[PENDIENTE_ISSUE_INC_0001]` | `[INC-0001] Producto con stock negativo al registrar salida en Inventario` | Incidencia | Alta | Inventario | PENDIENTE de crear en GitHub |
-| `[PENDIENTE_ISSUE_SOL_0002]` | `[SOL-0002] Habilitar credenciales y permisos para nuevo operador de almacén` | Solicitud | Media | Incidencias | PENDIENTE de crear en GitHub |
-| `[PENDIENTE_ISSUE_INC_0003]` | `[INC-0003] Pedido no refleja actualización de estado tras despacho` | Incidencia | Baja | Pedidos | PENDIENTE de crear en GitHub |
-| `[PENDIENTE_ISSUE_INC_0004]` | `[INC-0004] Script incidencias.js no cargaba en el contenedor Docker (HTTP 404)` | Incidencia | Alta | Incidencias / CI | Resuelto localmente / PENDIENTE issue en GitHub |
-| `[PENDIENTE_ISSUE_SOL_0005]` | `[SOL-0005] Automatizar suite de pruebas con validación estricta y código de salida` | Solicitud | Media | CI / Tests | Resuelto localmente / PENDIENTE issue en GitHub |
-| `[PENDIENTE_ISSUE_SOL_0006]` | `[SOL-0006] Implementar pipeline CD automático hacia AWS EC2 mediante SSH y GHCR` | Solicitud | Alta | CD / Deploy | Resuelto localmente / PENDIENTE issue en GitHub |
-
-*(Los IDs numéricos finales serán asignados por GitHub al ejecutar el script de creación, empezando tentativamente en #8)*.
+| [#8](https://github.com/Sebahhs10/Novatech-HD/issues/8) | `[INC-0001] Producto con stock negativo al registrar salida en Inventario` | `incidencia` | `prioridad-alta` | `modulo-inventario` | Resuelto en frontend (`script.js` L.509 valida `cantidad > prod.stock`) |
+| [#9](https://github.com/Sebahhs10/Novatech-HD/issues/9) | `[SOL-0002] Habilitar credenciales y permisos para nuevo operador de almacén` | `solicitud` | `prioridad-media` | `modulo-incidencias` | Abierto / Backlog de soporte operativo (simulado en `Login.html`) |
+| [#10](https://github.com/Sebahhs10/Novatech-HD/issues/10) | `[INC-0003] Pedido no refleja actualización de estado tras despacho` | `incidencia` | `prioridad-baja` | `modulo-pedidos` | Abierto / Backlog de trazabilidad de pedidos |
+| [#11](https://github.com/Sebahhs10/Novatech-HD/issues/11) | `[INC-0004] Script incidencias.js no cargaba en el contenedor Docker (HTTP 404)` | `incidencia` | `prioridad-alta` | `modulo-incidencias` | Resuelto en PR #7 (`Dockerfile` incluye `COPY incidencias.js ./`) |
+| [#12](https://github.com/Sebahhs10/Novatech-HD/issues/12) | `[SOL-0005] Automatizar suite de pruebas con validación estricta y código de salida` | `solicitud` | `prioridad-media` | `modulo-inventario` | Resuelto en PR #7 (`tests/test.js` 40/40 pruebas con `exit 1` en error) |
+| [#13](https://github.com/Sebahhs10/Novatech-HD/issues/13) | `[SOL-0006] Implementar pipeline CD automático hacia AWS EC2 mediante SSH y GHCR` | `solicitud` | `prioridad-alta` | `modulo-incidencias` | Configurado en código (`.github/workflows/ci.yml` y `terraform.tf`); despliegue real en nube pendiente de EC2 |
 
 ### 1.4. Capturas y Enlaces de Evidencia (Lab 1)
 - **Enlace a Issues en GitHub:** [https://github.com/Sebahhs10/Novatech-HD/issues](https://github.com/Sebahhs10/Novatech-HD/issues)
