@@ -1,29 +1,33 @@
-# ✅ Informe de Verificación Final y Cumplimiento de Rúbrica
+# ✅ Informe de Verificación y Estado Real de Cumplimiento (Rúbrica)
 
 **Curso:** Herramientas de Desarrollo (Avance de Proyecto 3)  
 **Proyecto:** Plataforma NovaTech S.A.C.  
+**Repositorio Oficial:** [https://github.com/Sebahhs10/Novatech-HD](https://github.com/Sebahhs10/Novatech-HD)  
 **Evaluación:** Rúbrica de 20 puntos (5 criterios de 4 puntos cada uno)  
 **Fecha de Verificación:** 18 de Noviembre de 2026  
 
 ---
 
-## 📊 1. Matriz de Cumplimiento de la Rúbrica
+## 📊 1. Matriz de Cumplimiento de la Rúbrica y Evidencias Reales
 
-| # | Criterio de la Rúbrica | Puntaje Máx. | Estado Técnico | Evidencia Concreta en el Repositorio | Calificación Estimada |
-|---|---|---|---|---|---|
-| **1** | **Sistema de seguimiento de incidentes en Git/GitLab:** uso avanzado de issues, etiquetas, asignación, cierre y documentación clara. | 4.0 pts | ✅ Completado en código / Requiere ejecución en GitHub | - `.github/ISSUE_TEMPLATE/incidencia.md`<br>- `.github/ISSUE_TEMPLATE/solicitud.md`<br>- `.github/PULL_REQUEST_TEMPLATE.md`<br>- `docs/GH-SETUP.md` (8 labels, milestone, 6 issues)<br>- `scripts/setup-github.ps1`<br>- Trazabilidad `Closes #n` en PR/commits | **4.0 / 4.0** (tras push) |
-| **2** | **Integración Continua (CI):** pipeline configurado correctamente y sin errores. | 4.0 pts | ✅ 100% Verificado | - `.github/workflows/ci.yml` (jobs `test` y `build`)<br>- `actions/checkout@v4`, `actions/setup-node@v4` (Node 20)<br>- `tests/test.js` con 40 pruebas unitarias y de integración en Node puro<br>- Salida con `process.exit(1)` en fallos y `exit 0` en éxito<br>- YAML validado sintácticamente | **4.0 / 4.0** |
-| **3** | **Entrega Continua (CD):** pipeline CD automatizado, completo y documentado. | 4.0 pts | ✅ 100% Verificado | - Job `deploy` en `ci.yml` condicionado a push en `main`<br>- Despliegue por SSH y registro en GHCR<br>- `Dockerfile` corregido con `COPY incidencias.js ./`<br>- `.dockerignore` configurado<br>- `terraform.tf` con Amazon Linux 2023 y SSH seguro (`ssh_cidr`)<br>- `docs/DEPLOY.md` con guía detallada de variables secretas | **4.0 / 4.0** |
-| **4** | **Presentación y exposición:** exposición clara y ordenada; material de apoyo en `docs/`. | 4.0 pts | ✅ Material Listo | - `docs/PRESENTACION.md` (guion 10-12 min minuto a minuto, criterios de rúbrica, qué decir, qué mostrar y FAQ)<br>- `README.md` exhaustivo y profesional con diagrama Mermaid | **4.0 / 4.0** |
-| **5** | **Desarrollo de 3 laboratorios:** entrega completa y puntual. | 4.0 pts | ✅ Documentado / Placeholders claros | - `docs/LABS.md` estructurado cubriendo Lab 1 (Git/Issues), Lab 2 (CI/Docker) y Lab 3 (CD/Terraform/AWS)<br>- Placeholders explícitos para evidencias del alumno | **4.0 / 4.0** |
+| # | Criterio de la Rúbrica | Puntaje Máx. | Estado Real Actual | Evidencia Real Verificada | Evidencia PENDIENTE en GitHub | Nota Estimada Hoy |
+|---|---|---|---|---|---|---|
+| **1** | **Seguimiento de Incidentes:** issues, etiquetas, asignación, cierre y documentación. | 4.0 pts | 🟡 Parcial (Código listo / Remoto pendiente) | - Plantillas creadas: [incidencia.md](file:///.github/ISSUE_TEMPLATE/incidencia.md), [solicitud.md](file:///.github/ISSUE_TEMPLATE/solicitud.md), [PULL_REQUEST_TEMPLATE.md](file:///.github/PULL_REQUEST_TEMPLATE.md).<br>- Script de aprovisionamiento: [scripts/setup-github.ps1](file:///scripts/setup-github.ps1).<br>- Guía paso a paso: [docs/GH-SETUP.md](file:///docs/GH-SETUP.md). | **PENDIENTE:** Ejecutar script o crear en GitHub las 8 etiquetas, el Milestone "Avance de Proyecto 3" y las 6 issues reales (IDs previstos >= #8). | **2.0 / 4.0** |
+| **2** | **Integración Continua (CI):** pipeline configurado correctamente y sin errores. | 4.0 pts | 🟢 Verificado localmente / 🟡 Run remoto pendiente | - Workflow: [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) (jobs `test`, `build`).<br>- Suite: [tests/test.js](file:///tests/test.js) con **40/40 tests aprobados** (`exit 0`), terminación con `exit 1` ante fallos.<br>- Sintaxis YAML validada con Python `yaml.safe_load`.<br>- 9/9 endpoints verificados sin 404 (`scripts/verify-endpoints.js`). | **PENDIENTE:** Ejecución con check verde en la pestaña Actions de GitHub tras el push y apertura/actualización de PR. | **3.5 / 4.0** |
+| **3** | **Entrega Continua (CD):** pipeline CD automatizado, completo y documentado. | 4.0 pts | 🟡 Configurado en código / Despliegue en AWS pendiente | - [Dockerfile](file:///Dockerfile) corregido con `COPY incidencias.js ./`.<br>- [.dockerignore](file:///.dockerignore) configurado.<br>- [terraform.tf](file:///terraform.tf) con Amazon Linux 2023 y SSH restringido (`ssh_cidr`).<br>- Job `deploy` en `ci.yml` configurado para SSH hacia EC2 y push a GHCR.<br>- [docs/DEPLOY.md](file:///docs/DEPLOY.md) con procedimiento y matriz de secretos. | **PENDIENTE:** Cargar secretos reales (`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`) en GitHub Settings para ejecutar el despliegue automático en servidor AWS real. | **3.0 / 4.0** |
+| **4** | **Presentación y exposición:** exposición clara y ordenada (material de apoyo en `docs/`). | 4.0 pts | 🟢 Material Completado | - [docs/PRESENTACION.md](file:///docs/PRESENTACION.md): Guion de 10-12 min estructurado por bloques y criterios de rúbrica, qué decir, qué proyectar y banco de preguntas frecuentes (FAQ).<br>- [README.md](file:///README.md) con arquitectura Mermaid y topología de ramas. | *Ninguno en código.* Exposición oral a cargo del estudiante. | **4.0 / 4.0** |
+| **5** | **Desarrollo de 3 laboratorios:** entrega completa y puntual. | 4.0 pts | 🟡 Documentado en repo / Capturas pendientes | - [docs/LABS.md](file:///docs/LABS.md) estructurado cubriendo Lab 1 (Git/Issues), Lab 2 (CI/Docker) y Lab 3 (CD/Terraform/AWS). | **PENDIENTE:** Adjuntar capturas reales del tablero Jira/GitHub Projects y del run de Actions en los placeholders marcados. | **2.5 / 4.0** |
+
+**Calificación Técnica Estimada Hoy:** **15.0 / 20.0**  
+*(Alcanzará **20.0 / 20.0** una vez ejecutada la Fase 2 en GitHub: creación de issues, run verde en Actions y vinculación de evidencias).*
 
 ---
 
-## 🔍 2. Evidencias de Verificación Ejecutable
+## 🔍 2. Evidencias Técnicas Verificadas en Consola
 
 ### A. Ejecución de la Suite de Pruebas Automatizadas
 - **Comando:** `node tests/test.js`
-- **Resultado:**
+- **Salida obtenida:**
   ```text
   ▶ SUITE: 1. Existencia e integridad de archivos requeridos (12 pruebas) -> ✔
   ▶ SUITE: 2. Validación sintáctica de archivos JavaScript (node --check) (3 pruebas) -> ✔
@@ -38,11 +42,10 @@
   Pruebas fallidas:         0
   Exit Code:                0 (Éxito)
   ```
-- **Validación de fallo estricto:** Se comprobó que alterando cualquier archivo o directiva, el test termina inmediatamente con `process.exit(1)`.
 
 ### B. Verificación de Rutas HTTP y Prevención de 404
 - **Comando:** `node scripts/verify-endpoints.js`
-- **Resultado:**
+- **Salida obtenida:**
   - `✔ 200 OK /`
   - `✔ 200 OK /index.html`
   - `✔ 200 OK /inventario.html`
@@ -51,59 +54,19 @@
   - `✔ 200 OK /Login.html`
   - `✔ 200 OK /style.css`
   - `✔ 200 OK /script.js`
-  - `✔ 200 OK /incidencias.js` *(Corregido: anteriormente arrojaba 404)*
+  - `✔ 200 OK /incidencias.js` *(Corregido: ya no genera 404)*
 
-### C. Validación Sintáctica del Pipeline YAML
+### C. Validación Sintáctica de Workflow YAML
 - **Comando:** `python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml', encoding='utf-8')); print('YAML VALIDO')"`
-- **Resultado:** `YAML VALIDO`
+- **Salida obtenida:** `YAML VALIDO`
 
 ---
 
-## 📌 3. Lista de Tareas Pendientes por Parte del Alumno
+## 📋 3. Lista de Pendientes para Fase 2 (En GitHub)
 
-Para consolidar la nota máxima (20 / 20) en el entorno de producción y plataforma académica, debes realizar las siguientes acciones en tu cuenta de GitHub:
-
-1. **Subir la rama a GitHub:**
-   ```bash
-   git push -u origin feature/avance-proyecto-3
-   ```
-2. **Crear las Etiquetas, Milestone e Issues en GitHub:**
-   - Si tienes GitHub CLI (`gh`):
-     ```bash
-     gh auth login
-     .\scripts\setup-github.ps1
-     ```
-   - O ejecutando el script con un Personal Access Token (PAT):
-     ```bash
-     .\scripts\setup-github.ps1 -Token "ghp_tuToken"
-     ```
-   - O creando manualmente las 8 etiquetas, el milestone y las 6 issues siguiendo [docs/GH-SETUP.md](file:///docs/GH-SETUP.md).
-3. **Crear el Pull Request en GitHub:**
-   - Desde `feature/avance-proyecto-3` hacia `main`.
-   - Utilizar la plantilla provista, referenciando `Closes #1, Closes #2, Closes #3, Closes #4, Closes #5, Closes #6`.
-   - Revisar y hacer merge del Pull Request hacia `main`.
-4. **Configurar los Secretos de Despliegue en GitHub (para el Job `deploy`):**
-   - En el repositorio: `Settings` > `Secrets and variables` > `Actions` > `New repository secret`.
-   - Registrar:
-     - `EC2_HOST`: IP pública de la instancia AWS EC2.
-     - `EC2_USER`: `ec2-user`.
-     - `EC2_SSH_KEY`: Clave privada SSH (`.pem`).
-5. **Generar el Tag y Release `v1.0.0`:**
-   ```bash
-   git checkout main
-   git pull origin main
-   git tag -a v1.0.0 -m "Release Avance de Proyecto 3"
-   git push origin v1.0.0
-   ```
-6. **Completar las Evidencias Gráficas en `docs/LABS.md`:**
-   - Reemplazar los bloques marcados como `[EVIDENCIA PENDIENTE: ...]` con tus enlaces reales de GitHub Actions y capturas de pantalla del servidor y navegador.
-
----
-
-## 📈 4. Estimación de Calificación
-
-| Momento de Evaluación | Nota Estimada | Justificación |
-|---|---|---|
-| **Antes de la intervención** | **08 / 20** | CI con pruebas simbólicas que no validaban nada; Dockerfile roto (404 en incidencias.js); sin CD real; README incompleto cortado a mitad; Terraform con AMI obsoleta y SSH abierto a 0.0.0.0/0; 0 issues y 0 PRs en GitHub. |
-| **Estado actual (código y docs listos)** | **17 / 20** | Dockerfile y .dockerignore corregidos; suite de 40 pruebas en Node con `exit 1` en error; pipeline CI/CD completo con test, build y deploy; templates y scripts de GitHub listos; Terraform corregido y seguro; documentación completa (README, DEPLOY, GH-SETUP, LABS, PRESENTACION, VERIFICACION). |
-| **Tras completar tus pendientes en GitHub** | **20 / 20** | Trazabilidad completa en la nube (issues cerradas, PR mergeado, tag v1.0.0 publicado, pipeline ejecutado en verde con despliegue en EC2 y capturas en docs/LABS.md). |
+1. **Autenticación en GitHub CLI:** Confirmar `gh auth status` o ejecutar `gh auth login`.
+2. **Creación de Labels y Milestone:** Ejecutar `scripts/setup-github.ps1` contra `Sebahhs10/Novatech-HD`.
+3. **Creación de las 6 Issues:** Registrar las issues reales en el repo con sus labels y milestone.
+4. **Pull Request y Checks:** Definir rama de entrega (ej. `integration/avance3` o `daniel` hacia `develop` o `main`), completar plantilla con `Closes #N` reales y verificar que el workflow corra en verde.
+5. **Configuración de Secretos de Despliegue:** Cargar `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` en `Settings > Secrets and variables > Actions` si se dispone de instancia AWS.
+6. **Release v1.0.0:** Crear el tag y release formal en GitHub tras aprobación y merge del PR.

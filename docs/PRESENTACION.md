@@ -34,12 +34,11 @@
 
 ### Bloque 2: Criterio 1 - Sistema de Seguimiento de Incidentes en Git (1:30 - 3:30)
 - **Qué decir:**
-  > "Cumpliendo con el primer criterio de la rúbrica, implementamos una gestión profesional de incidentes directamente en el ciclo de desarrollo en GitHub. Creamos un sistema taxonómico con 8 etiquetas especializadas divididas en tipo (incidencia, solicitud), prioridad (alta, media, baja) y módulo (inventario, pedidos, incidencias). Configuramos plantillas estandarizadas para el reporte de incidencias y solicitudes en `.github/ISSUE_TEMPLATE`, junto con una plantilla para Pull Requests. Además, registramos 6 incidentes reales extraídos de la operación de NovaTech y demostramos su resolución mediante commits con cierre automático (`Closes #n`) y Pull Requests con revisión."
+  > "Cumpliendo con el primer criterio de la rúbrica, implementamos una gestión profesional de incidentes directamente en el ciclo de desarrollo en GitHub. Creamos un sistema taxonómico con 8 etiquetas especializadas divididas en tipo (incidencia, solicitud), prioridad (alta, media, baja) y módulo (inventario, pedidos, incidencias). Configuramos plantillas estandarizadas para el reporte de incidencias y solicitudes en `.github/ISSUE_TEMPLATE`, junto con una plantilla para Pull Requests. Además, diseñamos y estructuramos 6 incidencias reales extraídas de la operación de NovaTech con criterios de aceptación y vinculación a commits con cierre automático (`Closes #n`), documentadas en `docs/GH-SETUP.md` y automatizadas mediante `scripts/setup-github.ps1`."
 - **Qué mostrar en pantalla:**
-  - Pestaña de GitHub **Issues** mostrando las etiquetas con colores corporativos y las 6 issues organizadas bajo el Milestone *'Avance de Proyecto 3'*.
-  - Mostrar una Issue abierta enseñando el formato de la plantilla (`.github/ISSUE_TEMPLATE/incidencia.md`).
-  - Mostrar un commit o PR que contenga `Closes #1` y cómo GitHub cierra el ciclo automáticamente.
-  - Referenciar la documentación en `docs/GH-SETUP.md`.
+  - Plantillas en el repositorio (`.github/ISSUE_TEMPLATE/incidencia.md`, `solicitud.md` y `PULL_REQUEST_TEMPLATE.md`).
+  - Script automatizado `scripts/setup-github.ps1` y guía `docs/GH-SETUP.md`.
+  - Explicar la taxonomía de etiquetas y el ciclo de vida (Abierto ➔ En atención ➔ Resuelto).
 
 ---
 
@@ -49,15 +48,14 @@
   > Reescribimos completamente la suite de pruebas en `tests/test.js` sin librerías externas. Ahora ejecuta 40 pruebas en 7 suites: valida sintaxis de todos los archivos JavaScript con `node --check`, presencia de archivos requeridos, directivas del Dockerfile, y reglas de negocio críticas: prefijos de pedidos PED-, cálculo de importes, estados permitidos y reglas de existencias en inventario. Si alguna prueba falla, el script termina con `process.exit(1)`, deteniendo inmediatamente el pipeline."
 - **Qué mostrar en pantalla:**
   - Terminal ejecutando `node tests/test.js` mostrando las 40 pruebas en verde y el resumen final.
-  - Pestaña **Actions** de GitHub mostrando los runs exitosos en verde para los jobs `test` y `build`.
-  - Código de `.github/workflows/ci.yml` señalando los jobs y pasos de validación HTTP con `curl`.
+  - Código de `.github/workflows/ci.yml` señalando los jobs `test` y `build`, y los pasos de validación HTTP con `curl`.
 
 ---
 
 ### Bloque 4: Criterio 3 - Entrega Continua (CD) e Infraestructura (5:30 - 7:30)
 - **Qué decir:**
-  > "Para el criterio 3 de Entrega Continua, el pipeline se extiende al job `deploy`, el cual se activa exclusivamente tras hacer push o merge a la rama `main`. El contenedor Docker se empaqueta con Nginx Alpine y, crucialmente, corregimos la inclusión de `incidencias.js` que anteriormente causaba error 404 en la vista de Mesa de Ayuda.
-  > La imagen se publica en GitHub Container Registry (GHCR) y se despliega hacia una instancia AWS EC2 vía SSH seguro usando variables secretas (`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`).
+  > "Para el criterio 3 de Entrega Continua, el pipeline se extiende al job `deploy`, el cual está preparado para activarse en eventos push hacia la rama `main`. El contenedor Docker se empaqueta con Nginx Alpine y corregimos la inclusión de `incidencias.js` que anteriormente causaba error 404 en la vista de Mesa de Ayuda.
+  > El pipeline publica la imagen en GitHub Container Registry (GHCR) y prevé la conexión hacia una instancia AWS EC2 vía SSH seguro usando variables secretas (`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`).
   > Además, diseñamos la Infraestructura como Código en `terraform.tf` con Amazon Linux 2023, eliminando la vulnerabilidad de SSH abierto a 0.0.0.0/0 mediante la variable restringida `ssh_cidr` y generando outputs automáticos de IP y URL."
 - **Qué mostrar en pantalla:**
   - Código de `Dockerfile` y `.dockerignore` mostrando la inclusión de `incidencias.js`.
@@ -68,7 +66,7 @@
 
 ### Bloque 5: Criterio 5 - Demostración y Laboratorios (7:30 - 9:30)
 - **Qué decir:**
-  > "En el criterio 5 presentamos el cumplimiento íntegro de los 3 laboratorios del curso, documentados con evidencia en `docs/LABS.md`:
+  > "En el criterio 5 presentamos el cumplimiento íntegro de los 3 laboratorios del curso, documentados técnicamente en `docs/LABS.md`:
   > - Lab 1: Control de versiones, branching y seguimiento de incidentes con Git/GitHub.
   > - Lab 2: Integración Continua con GitHub Actions, Dockerfile y pruebas unitarias.
   > - Lab 3: Entrega Continua hacia AWS EC2, scripts PowerShell y Terraform.
