@@ -5,59 +5,169 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # 1. INTEGRACIÓN CONTINUA (CI)
+  # ==========================================================
+  # JOB 1: INTEGRACIÓN CONTINUA (CI) - PRUEBAS AUTOMATIZADAS
+  # ==========================================================
   test:
-    name: 🧪 CI - Pruebas Unitarias (Node.js)
+    name: 🧪 CI - Pruebas Unitarias y Reglas de Negocio
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Clonar codigo del repositorio
         uses: actions/checkout@v4
 
-      - name: ⚙️ Configurar entorno Node.js 18
+      - name: ⚙️ Configurar entorno Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: 🚀 Ejecutar suite de pruebas
         run: |
-          echo "Ejecutando pruebas de integridad en pedidos e inventario..."
+          echo "Ejecutando pruebas de integridad, sintaxis y reglas de negocio..."
           node tests/test.js
 
-  # 2. ENTREGA CONTINUA (CD)
-  docker-build:
-    name: 🐳 CD - Construccion, Despliegue y Validacion Docker
+  # ==========================================================
+  # JOB 2: INTEGRACIÓN CONTINUA (CI) - DOCKER BUILD Y SMOKE TESTS
+  # ==========================================================
+  build:
+    name: 🐳 CI - Construcción, Verificación y Empaquetado Docker
     needs: test
     runs-on: ubuntu-latest
-    if: success()
     steps:
       - name: 📥 Clonar codigo del repositorio
         uses: actions/checkout@v4
 
-      - name: 🔨 Construir imagen Docker
+      - name: ⚙️ Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔨 Construir imagen Docker local
         run: |
-          docker build -t novatech-app:latest .
+          docker build -t novatech:latest -t novatech:${{ github.sha }} .
           docker images
 
       - name: 🚀 Desplegar contenedor de prueba
         run: |
-          docker run -d -p 8080:80 --name novatech-container novatech-app:latest
+          docker run -d -p 8080:80 --name novatech-test novatech:latest
           docker ps
           sleep 4
 
-      - name: 🩺 Healthcheck de la aplicacion
+      - name: 🩺 Smoke test y verificación de endpoints HTTP (200 OK)
         run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
-          echo "Codigo de respuesta HTTP: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" -ne 200 ]; then
-            echo "❌ Error: La aplicacion no respondio con estado HTTP 200"
-            exit 1
-          fi
-          echo "✅ Aplicacion NovaTech desplegada y respondiendo con exito."
+          echo "Verificando respuesta HTTP 200 en rutas principales..."
+          curl -fsS http://localhost:8080/ | grep -q "NovaTech"
+          curl -fsS http://localhost:8080/index.html | grep -q "Dashboard"
+          curl -fsS http://localhost:8080/inventario.html | grep -q "Inventario"
+          curl -fsS http://localhost:8080/pedidos.html | grep -q "Lista de Pedidos"
+          curl -fsS http://localhost:8080/incidencias.html | grep -q "Incidencias"
+          curl -fsS http://localhost:8080/Login.html | grep -q "NovaTech"
+          
+          echo "Verificando assets JavaScript y CSS (sin 404)..."
+          curl -fsS http://localhost:8080/style.css -o /dev/null
+          curl -fsS http://localhost:8080/script.js -o /dev/null
+          curl -fsS http://localhost:8080/incidencias.js -o /dev/null
+          
+          echo "✅ Todos los endpoints y scripts respondieron satisfactoriamente (HTTP 200)"
 
-      - name: 🧹 Limpiar recursos de contenedor
+      - name: 🧹 Limpiar recursos de prueba
         if: always()
         run: |
-          docker stop novatech-container || true
-          docker rm novatech-container || true
+          docker stop novatech-test || true
+          docker rm novatech-test || true
+
+      - name: 🔑 Iniciar sesión en GitHub Container Registry (GHCR)
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📤 Publicar imagen en GHCR
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && github.event_name == 'push'
+        run: |
+          LOWER_IMAGE=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          docker tag novatech:latest ${LOWER_IMAGE}:latest
+          docker tag novatech:latest ${LOWER_IMAGE}:${{ github.sha }}
+          docker push ${LOWER_IMAGE}:latest
+          docker push ${LOWER_IMAGE}:${{ github.sha }}
+          echo "✅ Imagen publicada exitosamente en GHCR: ${LOWER_IMAGE}:latest"
+
+  # ==========================================================
+  # JOB 3: ENTREGA CONTINUA (CD) - DESPLIEGUE EN AWS EC2
+  # ==========================================================
+  deploy:
+    name: 🚀 CD - Despliegue Continuo en AWS EC2 (SSH)
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Clonar codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: 🔍 Validar disponibilidad de credenciales de despliegue
+        id: check_secrets
+        run: |
+          if [ -n "${{ secrets.EC2_HOST }}" ] && [ -n "${{ secrets.EC2_USER }}" ] && [ -n "${{ secrets.EC2_SSH_KEY }}" ]; then
+            echo "configured=true" >> $GITHUB_OUTPUT
+            echo "✅ Secretos de despliegue SSH presentes en el repositorio."
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "::warning::Los secretos EC2_HOST, EC2_USER o EC2_SSH_KEY no estan configurados en GitHub Secrets."
+            echo "::notice::Para activar el despliegue automatico a EC2, configure los secretos en: Settings > Secrets and variables > Actions."
+          fi
+
+      - name: 🚀 Desplegar aplicacion en AWS EC2 via SSH
+        if: steps.check_secrets.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+            echo "=== INICIANDO DESPLIEGUE AUTOMATICO DE NOVATECH EN EC2 ==="
+            LOWER_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            TARGET_IMAGE="ghcr.io/${LOWER_REPO}:latest"
+
+            echo "Descargando imagen actualizada desde GHCR ($TARGET_IMAGE)..."
+            if [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            fi
+            docker pull $TARGET_IMAGE || {
+              echo "Aviso: No se pudo hacer pull desde GHCR, reconstruyendo imagen local..."
+              if [ ! -d "/home/${{ secrets.EC2_USER }}/Novatech-HD" ]; then
+                git clone https://github.com/${{ github.repository }}.git /home/${{ secrets.EC2_USER }}/Novatech-HD
+              fi
+              cd /home/${{ secrets.EC2_USER }}/Novatech-HD
+              git fetch origin main
+              git reset --hard origin/main
+              docker build -t $TARGET_IMAGE .
+            }
+
+            echo "Deteniendo version anterior del contenedor si existe..."
+            docker stop novatech-web || true
+            docker rm novatech-web || true
+
+            echo "Iniciando nueva version del contenedor NovaTech..."
+            docker run -d --name novatech-web --restart always -p 80:80 $TARGET_IMAGE
+
+            echo "Esperando inicio del servicio..."
+            sleep 3
+
+            echo "Ejecutando smoke test local..."
+            curl -fsS http://localhost:80/ | grep -q "NovaTech"
+            curl -fsS http://localhost:80/incidencias.js -o /dev/null
+
+            echo "=== DESPLIEGUE CONTINUO COMPLETADO EXITOSAMENTE ==="

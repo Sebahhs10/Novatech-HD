@@ -7,7 +7,7 @@
 <body>
 <div class="app-shell">
   <aside class="sidebar"><div class="brand"><div class="brand-icon">N</div><div><strong>NovaTech</strong><span>Portal de gestión</span></div></div>
-    <nav class="nav-menu"><p class="nav-title">MENÚ PRINCIPAL</p><a class="nav-link" href="index.html"><span>📊</span> Dashboard</a><a class="nav-link active" href="inventario.html"><span>📦</span> Inventario</a><a class="nav-link" href="pedidos.html"><span>📋</span> Lista de Pedidos</a></nav>
+    <nav class="nav-menu"><p class="nav-title">MENÚ PRINCIPAL</p><a class="nav-link" href="index.html"><span>📊</span> Dashboard</a><a class="nav-link active" href="inventario.html"><span>📦</span> Inventario</a><a class="nav-link" href="pedidos.html"><span>📋</span> Lista de Pedidos</a><a class="nav-link" href="incidencias.html"><span>🛠️</span> Incidencias y solicitudes</a></nav>
     <div class="sidebar-bottom"><div class="mini-status"><span class="dot"></span><div><strong>Sistema operativo</strong><small>Docker + CI/CD</small></div></div></div>
   </aside>
   <main class="main-content">
@@ -45,18 +45,26 @@
         <label>Motivo<input id="movimientoMotivo" maxlength="120" placeholder="Compra, venta, ajuste..."></label>
         <div class="form-actions"><button class="btn-actualizar" id="movimientoSubmit" type="submit">Registrar entrada</button></div>
       </form>
-      <p class="help-text">Las salidas no pueden superar el stock disponible. Cada movimiento actualiza el stock y se guardará en la base de datos.</p>
+      <p class="help-text">Las salidas no pueden superar el stock disponible. Cada movimiento actualiza el stock y se guarda en el historial.</p>
     </section>
     <section class="content-card reports-card" id="reportesInventario">
-      <div class="section-heading"><div><p class="eyebrow">ANÁLISIS DEL INVENTARIO</p><h2>Reportes y estadísticas</h2></div><button class="btn-actualizar" type="button" onclick="exportarReporteInventario()">⬇ Exportar reporte CSV</button></div>
+      <div class="section-heading"><div><p class="eyebrow">ANÁLISIS DEL INVENTARIO</p><h2>Reportes y estadísticas</h2><p class="report-description">Resumen actualizado de existencias y movimientos registrados.</p></div><button class="btn-actualizar" type="button" onclick="exportarReporteInventario()">⬇ Exportar reporte CSV</button></div>
       <div class="report-kpis">
         <article class="report-kpi"><span>Valor de unidades*</span><strong id="reporteUnidades">0</strong><small>Unidades físicas en stock</small></article>
         <article class="report-kpi"><span>Entradas registradas</span><strong id="reporteEntradas">0</strong><small id="reporteCantidadEntradas">0 unidades ingresadas</small></article>
         <article class="report-kpi"><span>Salidas registradas</span><strong id="reporteSalidas">0</strong><small id="reporteCantidadSalidas">0 unidades retiradas</small></article>
         <article class="report-kpi report-kpi-alert"><span>Productos por reponer</span><strong id="reporteReposicion">0</strong><small>Stock bajo o agotado</small></article>
       </div>
+      <div class="report-grid">
+        <div class="report-panel"><h3>Stock por categoría</h3><p class="help-text">Distribución de las unidades disponibles.</p><div id="graficoCategorias" class="category-bars"></div></div>
+        <div class="report-panel"><h3>Estado del inventario</h3><p class="help-text">Cantidad de productos por estado actual.</p><div id="graficoEstados" class="status-breakdown"></div><p class="report-note">*No se calcula valor monetario porque los productos no tienen costo unitario registrado.</p></div>
+      </div>
     </section>
-    <section class="system-info"><div><span class="label">📅 Última actualización</span><strong id="ultimaActualizacion">-</strong></div><div><span class="label">🔧 Pipeline</span><strong class="text-success" id="estadoPipeline">✅ Exitoso</strong></div><div><span class="label">🐳 Contenedor</span><strong class="text-success" id="estadoContenedor">✅ Activo (DB Conectada)</strong></div></section>
+    <section class="content-card">
+      <div class="section-heading"><div><p class="eyebrow">TRAZABILIDAD</p><h2>Historial de movimientos</h2></div></div>
+      <div class="table-container"><table><thead><tr><th>FECHA</th><th>SKU</th><th>PRODUCTO</th><th>TIPO</th><th>CANTIDAD</th><th>MOTIVO</th></tr></thead><tbody id="tabla-movimientos"></tbody></table></div>
+    </section>
+    <section class="system-info"><div><span class="label">📅 Última actualización</span><strong id="ultimaActualizacion">-</strong></div><div><span class="label">🔧 Pipeline</span><strong class="text-success">Validado por GitHub Actions</strong></div><div><span class="label">🐳 Contenedor</span><strong class="text-success" id="estadoContenedor">✅ Activo</strong></div></section>
     <footer>© 2026 NovaTech S.A.C. · Gestión de inventario</footer>
   </main>
 </div>
