@@ -30,7 +30,7 @@ function escaparHTML(valor) {
 // ============================================
 async function cargarDatosDesdeMySQL() {
     try {
-        const resProductos = await fetch('http://localhost:3000/api/productos');
+        const resProductos = await fetch('http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/productos');
         const dataProductos = await resProductos.json();
         
         productos = dataProductos.map(prod => ({
@@ -38,7 +38,7 @@ async function cargarDatosDesdeMySQL() {
             stockMinimo: prod.stock_minimo
         }));
 
-        const resPedidos = await fetch('http://localhost:3000/api/pedidos');
+        const resPedidos = await fetch('http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/pedidos');
         pedidos = await resPedidos.json();
 
         console.log('✅ Datos cargados correctamente desde MySQL');
@@ -254,7 +254,7 @@ async function guardarProducto(evento) {
 
     try {
         // Enviamos los datos al backend
-        const response = await fetch('http://localhost:3000/api/productos', {
+        const response = await fetch('http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/productos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sku, nombre, categoria, stock, stockMinimo })
@@ -319,7 +319,7 @@ async function moverStock(tipo) {
     const nuevoStock = prod.stock + (tipo === 'entrada' ? cantidad : -cantidad);
     
     try {
-        const response = await fetch(`http://localhost:3000/api/productos/${sku}`, {
+        const response = await fetch(`http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/productos/${sku}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
