@@ -1,8 +1,13 @@
 // ============================================
 // DATOS DINÁMICOS (Conectados a MySQL)
 // ============================================
+const API_BASE = 'http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io';
+const API_PRODUCTOS = `${API_BASE}/api/productos`;
+const API_PEDIDOS = `${API_BASE}/api/pedidos`;
+
 let pedidos = [];
 let productos = [];
+let eventosInventarioInicializados = false;
 
 // Historial de movimientos (Temporalmente en LocalStorage hasta crear tabla en MySQL)
 const CLAVE_MOVIMIENTOS = 'novatech_movimientos_v1';
@@ -25,12 +30,22 @@ function escaparHTML(valor) {
     return String(valor).replace(/[&<>"']/g, caracter => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[caracter]));
 }
 
+function mostrarToast(mensaje, tipo = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo === 'error' ? 'toast-error' : ''}`;
+    toast.textContent = mensaje;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
+}
+
 // ============================================
 // CONEXIÓN AL BACKEND (NODE.JS + MYSQL)
 // ============================================
 async function cargarDatosDesdeMySQL() {
     try {
-        const resProductos = await fetch('http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/productos');
+        const resProductos = await fetch(API_PRODUCTOS);
         const dataProductos = await resProductos.json();
         
         productos = dataProductos.map(prod => ({
@@ -38,12 +53,11 @@ async function cargarDatosDesdeMySQL() {
             stockMinimo: prod.stock_minimo
         }));
 
-        const resPedidos = await fetch('http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/pedidos');
+        const resPedidos = await fetch(API_PEDIDOS);
         pedidos = await resPedidos.json();
 
         console.log('✅ Datos cargados correctamente desde MySQL');
 
-        // Estas dos funciones deben ejecutarse siempre, en cualquier página
         actualizarEstadisticas();
         actualizarEstadisticasInventario();
 
@@ -53,19 +67,29 @@ async function cargarDatosDesdeMySQL() {
 
         if (document.getElementById('tabla-inventario')) {
             actualizarVistaInventario();
-            
-            document.getElementById('formProducto')?.addEventListener('submit', guardarProducto);
-            document.getElementById('cancelarEdicionBtn')?.addEventListener('click', limpiarFormularioProducto);
-            document.getElementById('formMovimiento')?.addEventListener('submit', evento => { 
-                evento.preventDefault(); 
-                moverStock(document.getElementById('tipoMovimiento').value); 
-            });
-            ['buscadorInventario', 'filtroCategoria', 'filtroEstadoInventario'].forEach(id => 
-                document.getElementById(id)?.addEventListener(id === 'buscadorInventario' ? 'input' : 'change', mostrarInventario)
-            );
-            document.getElementById('tipoMovimiento')?.addEventListener('change', evento => { 
-                document.getElementById('movimientoSubmit').textContent = evento.target.value === 'entrada' ? 'Registrar entrada' : 'Registrar salida'; 
-            });
+
+            if (!eventosInventarioInicializados) {
+                eventosInventarioInicializados = true;
+                document.getElementById('formProducto')?.addEventListener('submit', guardarProducto);
+                document.getElementById('productoStock')?.addEventListener('input', actualizarPreviewEstado);
+                document.getElementById('productoMinimo')?.addEventListener('input', actualizarPreviewEstado);
+                document.getElementById('modalProducto')?.addEventListener('click', e => {
+                    if (e.target.id === 'modalProducto') cerrarModalProducto();
+                });
+                document.addEventListener('keydown', e => {
+                    if (e.key === 'Escape') cerrarModalProducto();
+                });
+                document.getElementById('formMovimiento')?.addEventListener('submit', evento => { 
+                    evento.preventDefault(); 
+                    moverStock(document.getElementById('tipoMovimiento').value); 
+                });
+                ['buscadorInventario', 'filtroCategoria', 'filtroEstadoInventario'].forEach(id => 
+                    document.getElementById(id)?.addEventListener(id === 'buscadorInventario' ? 'input' : 'change', mostrarInventario)
+                );
+                document.getElementById('tipoMovimiento')?.addEventListener('change', evento => { 
+                    document.getElementById('movimientoSubmit').textContent = evento.target.value === 'entrada' ? 'Registrar entrada' : 'Registrar salida'; 
+                });
+            }
         }
     } catch (error) {
         console.error("❌ Error conectando al servidor backend:", error);
@@ -165,7 +189,7 @@ function actualizarEstadisticas() {
 }
 
 // ============================================
-// FUNCIONES DE INVENTARIO Y CRUD
+// FUNCIONES DE INVENTARIO Y CRUD (MODAL)
 // ============================================
 function estadoProducto(prod) {
     if (prod.stock === 0) return { texto: 'Agotado', clase: 'stock-agotado' };
@@ -227,80 +251,134 @@ function actualizarEstadisticasInventario() {
     if (document.getElementById('productosAgotados')) document.getElementById('productosAgotados').textContent = agotados;
     if (document.getElementById('unidadesTotales')) document.getElementById('unidadesTotales').textContent = unidadesTotales;
     if (document.getElementById('alertasInventario')) document.getElementById('alertasInventario').textContent = alertas;
+    if (document.getElementById('reporteReposicion')) document.getElementById('reporteReposicion').textContent = alertas;
 }
 
-// Nota: Las siguientes funciones de CRUD actualizan el arreglo temporalmente. 
-// Requerirán rutas POST/PUT en Node.js para guardarse permanentemente.
-function registrarMovimiento(sku, tipo, cantidad, motivo) {
-    const prod = productos.find(p => p.sku === sku);
-    movimientosInventario.unshift({ id: `MOV-${Date.now()}`, fecha: new Date().toISOString(), sku, producto: prod ? prod.nombre : sku, tipo, cantidad, motivo: motivo || (tipo === 'entrada' ? 'Reposición de stock' : 'Salida de stock') });
-    guardarMovimientos();
-    renderizarHistorial();
+function abrirModalProducto(skuEditar = null) {
+    const modal = document.getElementById('modalProducto');
+    const form = document.getElementById('formProducto');
+    if (!modal || !form) return;
+
+    form.reset();
+    document.getElementById('skuOriginal').value = '';
+    document.getElementById('formProductoTitulo').textContent = 'Nuevo producto';
+    document.getElementById('guardarProductoBtn').textContent = 'Guardar producto';
+
+    if (skuEditar) {
+        const prod = productos.find(p => p.sku === skuEditar);
+        if (!prod) return;
+        document.getElementById('skuOriginal').value = prod.sku;
+        document.getElementById('productoSku').value = prod.sku;
+        document.getElementById('productoNombre').value = prod.nombre;
+        document.getElementById('productoCategoria').value = prod.categoria;
+        document.getElementById('productoStock').value = prod.stock;
+        document.getElementById('productoMinimo').value = prod.stockMinimo;
+        document.getElementById('formProductoTitulo').textContent = 'Editar producto';
+        document.getElementById('guardarProductoBtn').textContent = 'Guardar cambios';
+    }
+
+    actualizarPreviewEstado();
+    modal.hidden = false;
+    document.getElementById('productoNombre').focus();
+}
+
+function cerrarModalProducto() {
+    const modal = document.getElementById('modalProducto');
+    if (modal) modal.hidden = true;
+}
+
+function ajustarNumero(inputId, delta) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const actual = parseInt(input.value, 10) || 0;
+    input.value = Math.max(0, actual + delta);
+    actualizarPreviewEstado();
+}
+
+function actualizarPreviewEstado() {
+    const badge = document.getElementById('previewEstadoBadge');
+    if (!badge) return;
+    const stock = parseInt(document.getElementById('productoStock')?.value, 10) || 0;
+    const minimo = parseInt(document.getElementById('productoMinimo')?.value, 10) || 0;
+    const estado = estadoProducto({ stock, stockMinimo: minimo });
+    badge.className = `estado ${estado.clase}`;
+    badge.textContent = estado.texto.toUpperCase();
+}
+
+function generarSkuAutomatico() {
+    const cat = document.getElementById('productoCategoria').value || 'GEN';
+    const nombre = document.getElementById('productoNombre').value.trim();
+    const prefijoCat = cat.normalize('NFD').replace(/[\u0300-\u036f]/g, '').slice(0, 3).toUpperCase();
+    const prefijoNom = nombre ? nombre.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase() : 'PRD';
+    const sufijo = Math.floor(100 + Math.random() * 900);
+    document.getElementById('productoSku').value = `${prefijoCat}-${prefijoNom}-${sufijo}`;
 }
 
 async function guardarProducto(evento) {
     evento.preventDefault();
+    const btn = document.getElementById('guardarProductoBtn');
     const sku = document.getElementById('productoSku').value.trim().toUpperCase();
     const nombre = document.getElementById('productoNombre').value.trim();
     const categoria = document.getElementById('productoCategoria').value;
     const stock = Number(document.getElementById('productoStock').value);
     const stockMinimo = Number(document.getElementById('productoMinimo').value);
     const skuOriginal = document.getElementById('skuOriginal').value;
-    
-    if (skuOriginal) {
-        alert('La edición (PUT) la configuraremos en el siguiente paso.');
-        return;
-    }
+
+    const esEdicion = Boolean(skuOriginal);
+    const url = esEdicion ? `${API_PRODUCTOS}/${encodeURIComponent(skuOriginal)}` : API_PRODUCTOS;
+    const method = esEdicion ? 'PUT' : 'POST';
+
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
 
     try {
-        // Enviamos los datos al backend
-        const response = await fetch('http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/productos', {
-            method: 'POST',
+        const response = await fetch(url, {
+            method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sku, nombre, categoria, stock, stockMinimo })
         });
 
         if (response.ok) {
-            limpiarFormularioProducto();
-            actualizarInventario(); // Recarga la tabla directo desde MySQL
-            alert('✅ Producto guardado permanentemente en MySQL');
+            cerrarModalProducto();
+            await cargarDatosDesdeMySQL();
+            mostrarToast(esEdicion ? '✅ Producto actualizado en MySQL' : '✅ Producto registrado en MySQL');
         } else {
-            alert('❌ Error: El SKU ya existe o hubo un problema en el servidor.');
+            mostrarToast('❌ Error: el SKU ya existe o hubo un problema.', 'error');
         }
     } catch (error) {
         console.error('Error de conexión:', error);
+        mostrarToast('❌ No se pudo conectar con el servidor.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = esEdicion ? 'Guardar cambios' : 'Guardar producto';
     }
 }
 
 function editarProducto(sku) {
+    abrirModalProducto(sku);
+}
+
+async function eliminarProducto(sku) {
+    if (!confirm(`¿Eliminar definitivamente el producto ${sku} de la base de datos?`)) return;
+    try {
+        const response = await fetch(`${API_PRODUCTOS}/${encodeURIComponent(sku)}`, { method: 'DELETE' });
+        if (response.ok) {
+            await cargarDatosDesdeMySQL();
+            mostrarToast(`🗑️ Producto ${sku} eliminado`);
+        } else {
+            mostrarToast('❌ No se pudo eliminar el producto.', 'error');
+        }
+    } catch (error) {
+        console.error('Error eliminando:', error);
+        mostrarToast('❌ Error de conexión al eliminar.', 'error');
+    }
+}
+
+function registrarMovimiento(sku, tipo, cantidad, motivo) {
     const prod = productos.find(p => p.sku === sku);
-    if (!prod) return;
-    document.getElementById('skuOriginal').value = prod.sku;
-    document.getElementById('productoSku').value = prod.sku;
-    document.getElementById('productoNombre').value = prod.nombre;
-    document.getElementById('productoCategoria').value = prod.categoria;
-    document.getElementById('productoStock').value = prod.stock;
-    document.getElementById('productoMinimo').value = prod.stockMinimo;
-    document.getElementById('guardarProductoBtn').textContent = 'Guardar cambios';
-    document.getElementById('cancelarEdicionBtn').hidden = false;
-    document.getElementById('formProductoTitulo').textContent = 'Editar producto';
-    document.getElementById('formProducto').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function limpiarFormularioProducto() {
-    const form = document.getElementById('formProducto');
-    if (!form) return;
-    form.reset();
-    document.getElementById('skuOriginal').value = '';
-    document.getElementById('guardarProductoBtn').textContent = 'Agregar producto';
-    document.getElementById('cancelarEdicionBtn').hidden = true;
-    document.getElementById('formProductoTitulo').textContent = 'Registrar producto';
-}
-
-function eliminarProducto(sku) {
-    if (!confirm(`¿Eliminar el producto (${sku}) visualmente?`)) return;
-    productos = productos.filter(p => p.sku !== sku);
-    actualizarVistaInventario();
+    movimientosInventario.unshift({ id: `MOV-${Date.now()}`, fecha: new Date().toISOString(), sku, producto: prod ? prod.nombre : sku, tipo, cantidad, motivo: motivo || (tipo === 'entrada' ? 'Reposición de stock' : 'Salida de stock') });
+    guardarMovimientos();
+    renderizarHistorial();
 }
 
 async function moverStock(tipo) {
@@ -311,15 +389,14 @@ async function moverStock(tipo) {
     
     if (!prod || cantidad <= 0) return;
     if (tipo === 'salida' && cantidad > prod.stock) {
-        alert(`Stock insuficiente. Disponible: ${prod.stock} unidades.`);
+        mostrarToast(`⚠️ Stock insuficiente. Disponible: ${prod.stock} unidades.`, 'error');
         return;
     }
     
-    // Calcular el nuevo stock matemático
     const nuevoStock = prod.stock + (tipo === 'entrada' ? cantidad : -cantidad);
     
     try {
-        const response = await fetch(`http://ikjfuxba2kdu3sfktqcbdzbk.134.209.6.203.sslip.io/api/productos/${sku}`, {
+        const response = await fetch(`${API_PRODUCTOS}/${encodeURIComponent(sku)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -334,11 +411,12 @@ async function moverStock(tipo) {
         if (response.ok) {
             registrarMovimiento(sku, tipo, cantidad, motivo); 
             document.getElementById('formMovimiento').reset();
-            actualizarInventario(); // Forzamos recarga fresca desde MySQL
-            alert(`✅ ${tipo.toUpperCase()} registrada. Stock actualizado permanentemente.`);
+            await cargarDatosDesdeMySQL();
+            mostrarToast(`✅ ${tipo.toUpperCase()} registrada. Stock actualizado.`);
         }
     } catch (error) {
         console.error('Error actualizando stock:', error);
+        mostrarToast('❌ Error actualizando stock.', 'error');
     }
 }
 
@@ -375,7 +453,7 @@ function actualizarReportesInventario() {
 }
 
 function exportarReporteInventario() {
-    alert("Función de exportación lista.");
+    mostrarToast('📄 Función de exportación lista.');
 }
 
 function actualizarVistaInventario() {
@@ -390,7 +468,7 @@ function actualizarVistaInventario() {
 
 function actualizarInventario() {
     cargarDatosDesdeMySQL().then(() => {
-        alert('✅ Inventario sincronizado exitosamente con la base de datos MySQL.');
+        mostrarToast('✅ Inventario sincronizado con MySQL');
     });
 }
 
